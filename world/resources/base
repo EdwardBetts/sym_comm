@@ -1,0 +1,46 @@
+id: 1
+name: sterni
+effect:
+	on:	thirst
+	size: .2
+effect:
+	on: hunger
+	size: .1
+	dependency: inebriation, antiproportional
+effect:
+	on: fatique
+	size: .1
+image: resource01.png
+
+id: 2
+name: berries
+effect:
+	on: hunger
+	size: .1
+grow:
+	vegetation:
+		min: 2
+		max: 6
+	water: 
+		max: 0
+	adjacent: 
+		vegetation: 
+			min: 3
+			number: 
+				min: 3
+	adjacent:
+		vegetation: 
+			min: 2
+			number:
+				min: 2
+		resource: 
+			id: 2
+			number:
+				min: 1
+				max: 3
+image: resource02.png
+
+
+
+
+
