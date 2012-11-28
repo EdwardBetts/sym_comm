@@ -37,12 +37,34 @@ keywords={'resource': {
 				'id': True,
 				'number': {
 					'min': False,
-					'max': True						
+					'max': True
 				}
 			}
 		}
 	}
 }}
+
+
+class Resource(object):
+
+	def __init__(self, rid='', name='', image='', effects=[], growOn=[]):
+		self.id = rid
+		self.name = name
+		self.image = image
+		self.effects = effects
+		self.growOn = []
+		
+	def add_effect(effect):
+		self.effects.append(effect)
+		
+	def add_grow_condition(condition):
+		self.growOn.append(condition)
+
+
+def createResourceType(conf):
+	for line in conf:
+		print line
+	
 
 
 def load(filename):
@@ -59,20 +81,10 @@ def load(filename):
 		keyword = entry[0]
 		depth = keyword.count('\t')+1
 		keyword = keyword.strip()
-		#print context
-		print '/'.join([node[0] for node in context]), keyword
 
 		if depth < len(context):
-#			print "%d < %d" % (depth, len(context))
 			while len(context)>depth:
 				context.pop()
-			print "going up on level ", len(context), ": "
-			resource.append('')
-#			print context[-1][0], '.'
-
-#			print '/'.join([node[0] for node in context]), keyword
-
-
 
 		if keyword in context[-1][1]:
 			keyf = type(context[-1][1].get(keyword, None))
@@ -81,15 +93,19 @@ def load(filename):
 					for node in context] + [keyword]), 
 					entry[1].strip()) 
 				)
-#				print resource[-1]
 						
 			elif keyf is dict:
-#				print "enter context: ", keyword, context[-1][1][keyword]
 				context.append(
 					(keyword, context[-1][1][keyword])
 				)
+				resource.append('.'.join([node[0]
+					for node in context]))
 			else:
-				print "neither attribute nor category?", keyf
+				print "neither attribute nor category?", 
+				print keyword, keyf
+		elif keyword == '':
+			if not resource[-1] == '':
+				resource.append('')			
 		else:
 			print "unknown keyword: ", keyword
 			print "known: ", context[-1][1].keys()
@@ -97,23 +113,6 @@ def load(filename):
 
 	for e in resource:
 		print e
-
-		# if keyf is bool:
-		# 	if depth == len(path):
-		# 		if keywords[path[-1]].get(keyword, None):
-		# 			context[-1][keyword] = entry[1]
-		# elif keyf is dict:
-		# 	if keyword in keywords[path[-1]]:
-		# 		path.append(keyword)
-		# 		context[-1][keyword] = [{}]
-		# 		context.append(context[-1][keyword][0])
-		# 	elif keyword == path[-1]:
-		# 		context[-1][keyword].append({})
-		# 		context.append(context[-1][keyword][-1])
-		# 	else:
-		# 		while len(path)>1:
-		# 			up=path.pop()
-		# 			if keyword in context.pop()
 
 
 

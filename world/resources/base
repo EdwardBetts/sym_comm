@@ -23,7 +23,7 @@ grow:
 		max: 6
 	water: 
 		max: 0
-	adjacent: 
+	adjacent:
 		vegetation: 
 			min: 3
 			number: 
