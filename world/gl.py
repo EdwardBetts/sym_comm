@@ -1,6 +1,8 @@
 import pyglet
+from pyglet.gl import *
 from random import randint as rnd
 import media
+import graphics
 
 class GameWindow(pyglet.window.Window):
 
@@ -13,16 +15,21 @@ class GameWindow(pyglet.window.Window):
 		self.batch = pyglet.graphics.Batch()
 		self.jaja = pyglet.sprite.Sprite(
 			media.inhabitant('jaja01'), batch=self.batch)
+
 		self.clock = pyglet.clock.ClockDisplay()
 
 		impt = pyglet.image.SolidColorImagePattern((100,180,90,200))
 		self.bg = pyglet.image.create(800,600, impt)
+
+		self.vertices = graphics.raster()
 
 
 	def on_draw(self):
 		self.bg.blit(0,0)
 		self.label.draw()
 		self.clock.draw()
+
+		self.vertices.draw(GL_LINE_STRIP)
 
 		self.batch.draw()
 		self.jaja.x += rnd(0, 2)
