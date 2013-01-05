@@ -18,15 +18,15 @@ class Node(object):
 		ID = Node.counter
 		Node.counter += 1
 
-		self.x = ID % worldmap.width
-		self.y = ID // worldmap.width
+		self.x = ID % _world.width
+		self.y = ID // _world.width
 		# topological elevation of this map node; heightmap
 		# feature
 		self.elevation = 0
 
 		# kind of a center point of this node for to estimate
 		# where it is to find on the graphical output
-		self.pos=(self.x*20+10, self.y*20+10-self.elevation)
+		self.pos=(self.x*20+10, self.y*20+10)
 
 		# the nodes directly adjacent to this node
 		self.neighbours = {}
@@ -69,8 +69,20 @@ class Node(object):
 			 (u'nw',-1,-1)]
 
 		for key,rx,ry in nrel:
-			n[key] = worldmap.node((self.x+rx) % worldmap.width,
-							(self.y+ry) % worldmap.height)
+			n[key] = _world.node((self.x+rx) % _world.width,
+							(self.y+ry) % _world.height)
+
+
+	def set_elevation(self, elevation):
+		"""
+		sets the elevation value for this point. also, updates
+		2d coordinates of reference center point
+		"""
+		self.elevation = elevation
+		x, y = self.pos
+		y += int(elevation)
+		self.pos = (x,y)
+
 
 
 	def assign_bounds(self):
@@ -82,14 +94,15 @@ class Node(object):
 		n = self.neighbours
 
 		mean = lambda x1,x2: (x1 + x2) // 2
-		meany= lambda n1,n2: mean(mean(n1.y, n1.neighbours[u'n'].y),
-								mean(n2.y, n2.neighbours[u'n'].y))
+		meany= lambda n1,n2: mean(mean(n1.pos[1], n1.neighbours[u'n'].pos[1]),
+								mean(n2.pos[1], n2.neighbours[u'n'].pos[1]))
 
 		#TODO: spheric world
-		self.bounds = [ self.x-10, meany(n['w'], self),
-						self.x+10, meany(n['e'], self),
-						self.x-10, meany(n['se'], n['s']),
-						self.x+10, meany(n['sw'], n['s']) ]
+		x = self.pos[0]
+		self.bounds = [ x-10, meany(n['w'], self),
+						x+10, meany(n['e'], self),
+						x-10, meany(n['se'], n['s']),
+						x+10, meany(n['sw'], n['s']) ]
 
 
 	def get_bounds(self):
@@ -97,10 +110,10 @@ class Node(object):
 		returns an array of a four-point polygon representing
 		this map tile
 		"""
-
 		if not self.bounds:
 			# start top-left, go clockwise
-			self.bounds = [self.pos[0]-10, ]
+			self.assign_bounds()
+		return self.bounds
 
 
 	def accessability(self, from_node):
@@ -120,24 +133,26 @@ class WorldMap(object):
 
 	def __init__(self, width, height):
 		super(WorldMap, self).__init__()
+		print "  instantiate world map object with dimensions %dx%d" \
+			% (width, height)
 		self.width = width
 		self.height = height
 
 		self.nodes = {}
 
 
-	def init_map(self):
+	def init_map(self, maxheight):
 
 		while Node.counter < self.width*self.height:
 			n = Node()
 			self.nodes[(n.x,n.y)] = n
 
-		print "map nodes instantiated: %d" % Node.counter
+		print "   map nodes instantiated: %d" % Node.counter
 
 		for pos,node in self.nodes.items():
 			node.assign_neighbours()
 
-		self.init_heightmap()
+		self.init_heightmap(maxheight)
 
 		for pos,node in self.nodes.items():
 			node.assign_bounds()
@@ -155,31 +170,32 @@ class WorldMap(object):
 #		return self.nodes[i]
 
 
-	def init_heightmap(self):
+	def init_heightmap(self, maxheight):
 
 		# initiate heightmap with random values
 		for y in range(self.height):
 			for x in range(self.width):
-				elv = rnd(0,1)*rnd(0,1)*rnd(0,200)/10.
+				elv = rnd(0,1)*rnd(0,1)*rnd(0,maxheight*10)/10.
 				self.node(x,y).elevation = elv
 
 
 		# smooth heightmap by calculating means of each
 		# node's neighbours elevation values
-		topo = []
-		for y in range(self.height):
-			topo.append([])
-			for x in range(self.width):
-				n = self.node(x,y)
-				topo[y].append(
-					sum([nn.elevation for nn in
-					n.neighbours.values()+[n]])
-					/ (len(n.neighbours)+1.))
+		for i in range(2):
+			topo = []
+			for y in range(self.height):
+				topo.append([])
+				for x in range(self.width):
+					n = self.node(x,y)
+					topo[y].append(
+						sum([nn.elevation for nn in
+						n.neighbours.values()+[n]])
+						/ (len(n.neighbours)+1.))
 
-		# assign smoothened heightmap values to node instances
-		for y in range(self.height):
-			for x in range(self.width):
-				self.node(x, y).elevation = topo[y][x]
+			# assign smoothened heightmap values to node instances
+			for y in range(self.height):
+				for x in range(self.width):
+					self.node(x, y).set_elevation(topo[y][x])
 
 
 	def __repr__(self):
@@ -197,6 +213,44 @@ class WorldMap(object):
 		return '\n'.join(out)
 
 
+	def __len__(self):
+		"""
+		returns the size of this map, which is its width times
+		its height
+		"""
+		return self.width*self.height
 
-worldmap = WorldMap(30,20)
-worldmap.init_map()
+
+	def image(self):
+		"""
+		dummy method that returns the graphical representation
+		of a random map node as a vertex_list, just for debugging
+		"""
+		node = self.nodes.values()[rnd(0,len(self)-1)]
+		vertices = gfx.vertex_list(4,
+			('v2i', node.get_bounds()),
+			('c3B', (0, 0, 255)*4))
+		return vertices
+
+
+
+def get():
+	"""
+	returns the only existent instance of this class
+	"""
+	global _world
+	return _world
+
+
+def create(width, height, maxelevation):
+	"""
+	initializes the world map singleton with the given parameters
+	"""
+	global _world
+	print " get world map instance"
+	_world = WorldMap(width, height)
+	print " initialize world map with max elevation %d" % maxelevation
+	_world.init_map(maxelevation)
+	print " world map creation done: %d" % len(_world)
+
+_world = None

@@ -3,6 +3,7 @@ from pyglet.gl import *
 from random import randint as rnd
 import media
 import graphics
+import world
 
 class GameWindow(pyglet.window.Window):
 
@@ -23,11 +24,15 @@ class GameWindow(pyglet.window.Window):
 
 		self.vertices = graphics.raster()
 
+		self.world = world.map()
+
 
 	def on_draw(self):
 		self.bg.blit(0,0)
 		self.label.draw()
 		self.clock.draw()
+
+		self.world.image().draw(GL_LINE_STRIP)
 
 		self.vertices.draw(GL_LINE_STRIP)
 

@@ -12,7 +12,8 @@ if __name__ == '__main__':
 			print config
 
 
-	print world.worldmap
+	world.create_map(30, 20, 25)
+	print world.map()
 
 	window = world.gl.GameWindow()
 	pyglet.app.run()
