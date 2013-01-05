@@ -26,6 +26,9 @@ class Node(object):
 		self.neighbours = {}
 		self.bounds = []
 
+		# 0 = normal ground, 1 = water, 2 = dirt road
+		self.type = 0
+
 
 	def assign_neighbours(self):
 
