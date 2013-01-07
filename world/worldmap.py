@@ -101,8 +101,8 @@ class Node(object):
 		x = self.pos[0]
 		self.bounds = [ x-10, meany(n['w'], self),
 						x+10, meany(n['e'], self),
-						x-10, meany(n['se'], n['s']),
-						x+10, meany(n['sw'], n['s']) ]
+						x+10, meany(n['se'], n['s']),
+						x-10, meany(n['sw'], n['s']) ]
 
 
 	def get_bounds(self):
@@ -226,6 +226,7 @@ class WorldMap(object):
 		dummy method that returns the graphical representation
 		of a random map node as a vertex_list, just for debugging
 		"""
+		# http://packages.python.org/pyglet/api/pyglet.image.AbstractImage-class.html#blit_into
 		node = self.nodes.values()[rnd(0,len(self)-1)]
 		vertices = gfx.vertex_list(4,
 			('v2i', node.get_bounds()),
