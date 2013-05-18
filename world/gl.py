@@ -32,7 +32,7 @@ class GameWindow(pyglet.window.Window):
 		self.label.draw()
 		self.clock.draw()
 
-		self.world.image().draw(GL_LINE_LOOP)
+		self.world.image().draw(GL_POLYGON)
 
 		self.vertices.draw(GL_LINE_STRIP)
 

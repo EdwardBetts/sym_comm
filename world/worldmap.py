@@ -4,7 +4,16 @@ from random import randint as rnd
 
 __doc__="restructuredtext"
 
-
+nrel = [(u'n', 0,-1),
+	 (u'ne', 1,-1),
+	  (u'e', 1, 0),
+	 (u'se', 1, 1),
+	  (u's', 0, 1),
+	 (u'sw',-1, 1),
+	  (u'w',-1, 0),
+	 (u'nw',-1,-1)]
+	 
+	 
 class Node(object):
 	"""
 	Class for single map tile
@@ -50,6 +59,8 @@ class Node(object):
 		self.resource = None
 
 
+
+		 
 	def assign_neighbours(self):
 		"""
 		identifies the adjacent map tiles of this nodes and
@@ -59,14 +70,7 @@ class Node(object):
 		"""
 
 		n = self.neighbours
-		nrel = [(u'n', 0,-1),
-			 (u'ne', 1,-1),
-			  (u'e', 1, 0),
-			 (u'se', 1, 1),
-			  (u's', 0, 1),
-			 (u'sw',-1, 1),
-			  (u'w',-1, 0),
-			 (u'nw',-1,-1)]
+
 
 		for key,rx,ry in nrel:
 			n[key] = _world.node((self.x+rx) % _world.width,
@@ -254,4 +258,5 @@ def create(width, height, maxelevation):
 	_world.init_map(maxelevation)
 	print " world map creation done: %d" % len(_world)
 
+# TODO: dont need create and get methods!!
 _world = None
