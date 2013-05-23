@@ -37,11 +37,12 @@ class Tile(object):
 		# feature
 		self.elevation = 0
 
-		# kind of a center point of this tile for to estimate
+		# upper-left corner of this tile for to estimate
 		# where it is to find on the graphical output
-		self.pos=(self.x*20+10, self.y*20+10)
+		self.pos=(self.x*20, self.y*20)
 
 		# the tiles directly adjacent to this tile
+		#TODO: store walking cost between nodes in here?
 		self.neighbours = {}
 		# coordinates of the graphical representation of this
 		# tile, a four point polygon
@@ -65,7 +66,7 @@ class Tile(object):
 
 
 
-		 
+	# sets up links to neighbour nodes.
 	def assign_neighbours(self):
 		"""
 		identifies the adjacent map tiles of this tiles and
@@ -73,13 +74,13 @@ class Tile(object):
 		the respective relative cardinal direction as the key,
 		like 'n', 'sw', 'nw' etc.
 		"""
-
 		n = self.neighbours
 
-
 		for key,rx,ry in nrel:
-			n[key] = topo.tile((self.x+rx) % topo.width,
-							(self.y+ry) % topo.height)
+			neighbour = topo.tile((self.x+rx) % topo.width,
+							(self.y+ry)) # % topo.height)
+			if neighbour:
+				n[key] = neighbour
 
 
 	def set_elevation(self, elevation):
@@ -99,19 +100,22 @@ class Tile(object):
 		assigns the coordinates of the polygon representing this
 		map tile, taking adjacent tiles into account
 		"""
-
 		n = self.neighbours
+		#mean = lambda x1,x2: (x1 + x2) // 2
+		#meany= lambda n1,n2: mean(mean(n1.pos[1], n1.neighbours[u'n'].pos[1]),
+								#mean(n2.pos[1], n2.neighbours[u'n'].pos[1]))
 
-		mean = lambda x1,x2: (x1 + x2) // 2
-		meany= lambda n1,n2: mean(mean(n1.pos[1], n1.neighbours[u'n'].pos[1]),
-								mean(n2.pos[1], n2.neighbours[u'n'].pos[1]))
-
-		#TODO: spheric world
 		x = self.pos[0]
-		self.bounds = [ x-10, meany(n['w'], self),
-						x+10, meany(n['e'], self),
-						x+10, meany(n['se'], n['s']),
-						x-10, meany(n['sw'], n['s']) ]
+		#self.bounds = [ x-10, meany(n['w'], self),
+						#x+10, meany(n['e'], self),
+						#x+10, meany(n['se'], n['s']),
+						#x-10, meany(n['sw'], n['s']) ]
+		self.bounds=[x, self.pos[1]]
+		for x,dir in [(x+20,'e'), (x+20,'se'), (x,'s')]:
+			if dir in n:
+				self.bounds+=[x, n[dir].pos[1]]
+			else:
+				self.bounds+=[x,self.pos[1]+20*int('s' in dir)]
 
 
 	def get_bounds(self):
@@ -125,16 +129,22 @@ class Tile(object):
 		return self.bounds
 
 
-	def accessability(self, from_tile):
+	def accessability(self, tile):
 		"""
 		returns a value indicating how hard it is to walk from
-		the adjacent tile from_tile to this one
+		this tile to a (most likely) adjacent tile 
 		"""
-		return self.walkability
+		#TODO: 
+		g = [0,1,1.5][int(self.x!=tile.x)+int(self.y!=tile.y)]
+		g *= 1+2/(self.walkability+tile.walkability)
+		g += tile.elevation-self.elevation
+		return g
 
 
-
-
+	# computes the distance between this node and a given one
+	# considers diagonal links
+	def distance(self, tile):
+		return max(abs(self.x-tile.x), abs(self.y-tile.y))
 
 
 
