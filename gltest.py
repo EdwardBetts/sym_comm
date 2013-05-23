@@ -1,5 +1,5 @@
 import pyglet
-import game.gl
+import game.window
 import world
 
 if __name__ == '__main__':
@@ -27,5 +27,5 @@ if __name__ == '__main__':
 		if len(tile.get_bounds()) != 8:
 			print tile.x, tile.y, tile.get_bounds()
 
-	window = game.gl.Window()
+	window = game.window.create()
 	pyglet.app.run()
