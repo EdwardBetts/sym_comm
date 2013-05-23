@@ -23,6 +23,9 @@ if __name__ == '__main__':
 
 	
 	print world.map
+	for tile in world.map.tiles.values():
+		if len(tile.get_bounds()) != 8:
+			print tile.x, tile.y, tile.get_bounds()
 
 	window = game.gl.Window()
 	pyglet.app.run()

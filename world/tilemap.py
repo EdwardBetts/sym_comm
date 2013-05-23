@@ -1,5 +1,7 @@
 import pyglet.graphics as gfx
+import pyglet.gl
 from random import randint as rnd
+from random import random as rndf
 import game
 # -*- coding: utf-8 -*-
 
@@ -47,7 +49,7 @@ class Tile(object):
 		# coordinates of the graphical representation of this
 		# tile, a four point polygon
 		# TODO: implement, handle as a vertex list or whatev
-		self.bounds = []
+		self.bounds = None
 
 		# 0 = normal ground, 1 = water, 2 = dirt road
 		self.type = 0
@@ -111,11 +113,11 @@ class Tile(object):
 						#x+10, meany(n['se'], n['s']),
 						#x-10, meany(n['sw'], n['s']) ]
 		self.bounds=[x, self.pos[1]]
-		for x,dir in [(x+20,'e'), (x+20,'se'), (x,'s')]:
+		for nx,dir in [(x+20,'e'), (x+20,'se'), (x,'s')]:
 			if dir in n:
-				self.bounds+=[x, n[dir].pos[1]]
+				self.bounds+=[nx, n[dir].pos[1]]
 			else:
-				self.bounds+=[x,self.pos[1]+20*int('s' in dir)]
+				self.bounds+=[nx, self.pos[1]+20*int('s' in dir)]
 
 
 	def get_bounds(self):
@@ -150,6 +152,10 @@ class Tile(object):
 
 
 
+
+
+
+
 ##### Tile Map implementation #####
 
 
@@ -158,15 +164,14 @@ class Map(object):
 	singleton providing world implementation as a tile map
 	"""
 
-
 	def __init__(self, width, height):
 		super(Map, self).__init__()
 		print "  instantiate world map object with dimensions %dx%d" \
 			% (width, height)
 		self.width = width
 		self.height = height
-
 		self.tiles = {}
+		self.batch=None
 
 
 	def init_map(self, maxheight):
@@ -200,17 +205,14 @@ class Map(object):
 
 	# set up heightmap
 	def init_heightmap(self, maxheight):
-
 		# initiate heightmap with random values
 		for y in range(self.height):
 			for x in range(self.width):
-				elv = rnd(0,1)*rnd(0,1)*rnd(0,maxheight*10)/10.
+				elv = rndf()**20*maxheight
 				self.tile(x,y).elevation = elv
-
-
 		# smooth heightmap by calculating means of each
 		# tile's neighbours elevation values
-		for i in range(2):
+		for i in range(4):
 			topo = []
 			for y in range(self.height):
 				topo.append([])
@@ -237,9 +239,7 @@ class Map(object):
 			row = []
 			for x in range(self.width):
 				row.append(self.tile(x,y).elevation)
-			out.append(' '.join([' .:#'[int(v>=5)+int(v>=8)+int(v>=10)] for v in row]))
-			#'#' if v >= 10 else
-					# '-' if v >= 5 else ' ' for v in row]))
+			out.append(' '.join([' .:+#&'[int(v>1)+int(v>2)+int(v>4)+int(v>7)+int(v>10)] for v in row]))
 
 		return '\n'.join(out)
 
@@ -258,11 +258,22 @@ class Map(object):
 		of a random map tile as a vertex_list, just for debugging
 		"""
 		# http://packages.python.org/pyglet/api/pyglet.image.AbstractImage-class.html#blit_into
-		tile = self.tiles.values()[rnd(0,len(self)-1)]
-		vertices = gfx.vertex_list(4,
-			('v2i', tile.get_bounds()),
-			('c3B', (0, 0, 255)*4))
-		return vertices
+		#tile = self.tiles.values()[rnd(0,len(self)-1)]
+		#vertices = gfx.vertex_list(4,
+		#	('v2i', tile.get_bounds()),
+		#	('c3B', (255,0,0,150,50,0,50,150,0,100,200,50)))
+	
+		if self.batch is None:
+			self.batch = gfx.Batch()
+			for x in range(0,self.width):
+				for y in range(0,self.height):
+					tile = self.tiles[(x,y)]
+					self.batch.add_indexed(4, pyglet.gl.GL_TRIANGLES, None,
+						[0,1,2,0,2,3],
+						('v2i', tile.get_bounds()),
+						('c3B', (150,0,0,100,50,0,50,150,0,100,200,50)))
+
+		return self.batch
 
 
 

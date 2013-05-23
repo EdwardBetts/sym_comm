@@ -24,15 +24,15 @@ class Window(pyglet.window.Window):
 
 		self.vertices = graphics.raster()
 
-		self.world = world.map
+		self.worldimage = world.map.image()
 
 
 	def on_draw(self):
 		self.bg.blit(0,0)
 		self.label.draw()
-		self.clock.draw()
 
-		self.world.image().draw(GL_POLYGON)
+		self.worldimage.draw()
+		self.clock.draw()
 
 		self.vertices.draw(GL_LINE_STRIP)
 
