@@ -1,5 +1,6 @@
 import pyglet
-import world.gl
+import game.gl
+import world
 
 if __name__ == '__main__':
 
@@ -20,8 +21,8 @@ if __name__ == '__main__':
 	print pyglet.gl.gl_info.get_renderer()
 
 
-	world.create_map(30, 20, 25)
-	print world.map()
+	
+	print world.map
 
-	window = world.gl.GameWindow()
+	window = game.gl.Window()
 	pyglet.app.run()

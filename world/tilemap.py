@@ -1,9 +1,11 @@
 import pyglet.graphics as gfx
 from random import randint as rnd
+import game
 # -*- coding: utf-8 -*-
 
 __doc__="restructuredtext"
 
+# set up variables for local use
 nrel = [(u'n', 0,-1),
 	 (u'ne', 1,-1),
 	  (u'e', 1, 0),
@@ -12,9 +14,11 @@ nrel = [(u'n', 0,-1),
 	 (u'sw',-1, 1),
 	  (u'w',-1, 0),
 	 (u'nw',-1,-1)]
-	 
-	 
-class Node(object):
+
+
+
+# implementation of single tile map node
+class Tile(object):
 	"""
 	Class for single map tile
 	"""
@@ -22,40 +26,41 @@ class Node(object):
 	counter=0
 
 	def __init__(self):
-		super(Node, self).__init__()
+		super(Tile, self).__init__()
 
-		ID = Node.counter
-		Node.counter += 1
+		ID = Tile.counter
+		Tile.counter += 1
 
-		self.x = ID % _world.width
-		self.y = ID // _world.width
-		# topological elevation of this map node; heightmap
+		self.x = ID % topo.width
+		self.y = ID // topo.width
+		# topological elevation of this map tile; heightmap
 		# feature
 		self.elevation = 0
 
-		# kind of a center point of this node for to estimate
+		# kind of a center point of this tile for to estimate
 		# where it is to find on the graphical output
 		self.pos=(self.x*20+10, self.y*20+10)
 
-		# the nodes directly adjacent to this node
+		# the tiles directly adjacent to this tile
 		self.neighbours = {}
 		# coordinates of the graphical representation of this
-		# node, a four point polygon
+		# tile, a four point polygon
 		# TODO: implement, handle as a vertex list or whatev
 		self.bounds = []
 
 		# 0 = normal ground, 1 = water, 2 = dirt road
 		self.type = 0
 
-		# vegetation level of this node
+		# vegetation level of this tile
 		# TODO: implement
 		self.vegetation = 0
 
-		# indicator for how good one can walk on this node
-		# TODO: heuristic
+		# indicator for how good one can walk on this tile
+		# 1: minimum, the higher the better
+		# TODO: heuristic/improve this!
 		self.walkability = 1
 
-		# the resource this node supplies
+		# the resource this tile supplies
 		self.resource = None
 
 
@@ -63,7 +68,7 @@ class Node(object):
 		 
 	def assign_neighbours(self):
 		"""
-		identifies the adjacent map tiles of this nodes and
+		identifies the adjacent map tiles of this tiles and
 		stores them in the self.neighbours dictionary with
 		the respective relative cardinal direction as the key,
 		like 'n', 'sw', 'nw' etc.
@@ -73,8 +78,8 @@ class Node(object):
 
 
 		for key,rx,ry in nrel:
-			n[key] = _world.node((self.x+rx) % _world.width,
-							(self.y+ry) % _world.height)
+			n[key] = topo.tile((self.x+rx) % topo.width,
+							(self.y+ry) % topo.height)
 
 
 	def set_elevation(self, elevation):
@@ -92,7 +97,7 @@ class Node(object):
 	def assign_bounds(self):
 		"""
 		assigns the coordinates of the polygon representing this
-		map tile, taking adjacent nodes into account
+		map tile, taking adjacent tiles into account
 		"""
 
 		n = self.neighbours
@@ -120,88 +125,99 @@ class Node(object):
 		return self.bounds
 
 
-	def accessability(self, from_node):
+	def accessability(self, from_tile):
 		"""
 		returns a value indicating how hard it is to walk from
-		the adjacent node from_node to this one
+		the adjacent tile from_tile to this one
 		"""
 		return self.walkability
 
 
 
-class WorldMap(object):
+
+
+
+
+
+
+##### Tile Map implementation #####
+
+
+class Map(object):
 	"""
 	singleton providing world implementation as a tile map
 	"""
 
 
 	def __init__(self, width, height):
-		super(WorldMap, self).__init__()
+		super(Map, self).__init__()
 		print "  instantiate world map object with dimensions %dx%d" \
 			% (width, height)
 		self.width = width
 		self.height = height
 
-		self.nodes = {}
+		self.tiles = {}
 
 
 	def init_map(self, maxheight):
+		"""
+		creates links between adjacent tiles, generates heightmap
+		and computes coordinates for graphical representation of
+		contained tiles
+		"""
+		while Tile.counter < self.width*self.height:
+			n = Tile()
+			self.tiles[(n.x,n.y)] = n
 
-		while Node.counter < self.width*self.height:
-			n = Node()
-			self.nodes[(n.x,n.y)] = n
+		print "   map tiles instantiated: %d" % Tile.counter
 
-		print "   map nodes instantiated: %d" % Node.counter
-
-		for pos,node in self.nodes.items():
-			node.assign_neighbours()
+		for pos,tile in self.tiles.items():
+			tile.assign_neighbours()
 
 		self.init_heightmap(maxheight)
 
-		for pos,node in self.nodes.items():
-			node.assign_bounds()
+		for pos,tile in self.tiles.items():
+			tile.assign_bounds()
 
 
-	def node(self, x, y):
+	# return tile at requested position
+	def tile(self, x, y):
 		"""
-		returns the map node at the given index ``(x,y)``
+		returns the map tile at the given index ``(x,y)``
 		"""
-		return self.nodes.get((x,y), None)
+		return self.tiles.get((x,y), None)
 
 
-#	def node_at(self, x, y):
-#		i = (y % self.height) * self.width + (x % self.width)
-#		return self.nodes[i]
-
-
+	# set up heightmap
 	def init_heightmap(self, maxheight):
 
 		# initiate heightmap with random values
 		for y in range(self.height):
 			for x in range(self.width):
 				elv = rnd(0,1)*rnd(0,1)*rnd(0,maxheight*10)/10.
-				self.node(x,y).elevation = elv
+				self.tile(x,y).elevation = elv
 
 
 		# smooth heightmap by calculating means of each
-		# node's neighbours elevation values
+		# tile's neighbours elevation values
 		for i in range(2):
 			topo = []
 			for y in range(self.height):
 				topo.append([])
 				for x in range(self.width):
-					n = self.node(x,y)
+					n = self.tile(x,y)
 					topo[y].append(
 						sum([nn.elevation for nn in
 						n.neighbours.values()+[n]])
 						/ (len(n.neighbours)+1.))
 
-			# assign smoothened heightmap values to node instances
+			# assign smoothened heightmap values to tile instances
 			for y in range(self.height):
 				for x in range(self.width):
-					self.node(x, y).set_elevation(topo[y][x])
+					self.tile(x, y).set_elevation(topo[y][x])
 
 
+	# REPR
 	def __repr__(self):
 		"""
 		returns a string representation of the world's heighmap
@@ -210,9 +226,10 @@ class WorldMap(object):
 		for y in range(self.height):
 			row = []
 			for x in range(self.width):
-				row.append(self.node(x,y).elevation)
-			out.append(' '.join(['#' if v >= 10 else
-					 '-' if v >= 5 else ' ' for v in row]))
+				row.append(self.tile(x,y).elevation)
+			out.append(' '.join([' .:#'[int(v>=5)+int(v>=8)+int(v>=10)] for v in row]))
+			#'#' if v >= 10 else
+					# '-' if v >= 5 else ' ' for v in row]))
 
 		return '\n'.join(out)
 
@@ -228,35 +245,34 @@ class WorldMap(object):
 	def image(self):
 		"""
 		dummy method that returns the graphical representation
-		of a random map node as a vertex_list, just for debugging
+		of a random map tile as a vertex_list, just for debugging
 		"""
 		# http://packages.python.org/pyglet/api/pyglet.image.AbstractImage-class.html#blit_into
-		node = self.nodes.values()[rnd(0,len(self)-1)]
+		tile = self.tiles.values()[rnd(0,len(self)-1)]
 		vertices = gfx.vertex_list(4,
-			('v2i', node.get_bounds()),
+			('v2i', tile.get_bounds()),
 			('c3B', (0, 0, 255)*4))
 		return vertices
 
 
 
-def get():
-	"""
-	returns the only existent instance of this class
-	"""
-	global _world
-	return _world
 
+# APi stuff
+topo=None
 
+# factory method
 def create(width, height, maxelevation):
-	"""
-	initializes the world map singleton with the given parameters
-	"""
-	global _world
-	print " get world map instance"
-	_world = WorldMap(width, height)
-	print " initialize world map with max elevation %d" % maxelevation
-	_world.init_map(maxelevation)
-	print " world map creation done: %d" % len(_world)
+	global topo
+	if not topo:
+		topo=Map(width, height)
+		topo.init_map(maxelevation)
+	return topo
 
-# TODO: dont need create and get methods!!
-_world = None
+
+# A* path finding initiator
+def find_path(orig, dest):
+	x,y=orig
+	orig = topo.tile(x,y)
+	x,y=dest
+	dest = topo.tile(x,y)
+	return pathfinder.AStar(orig, dest)

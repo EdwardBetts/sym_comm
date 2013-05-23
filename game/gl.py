@@ -5,12 +5,12 @@ import media
 import graphics
 import world
 
-class GameWindow(pyglet.window.Window):
+class Window(pyglet.window.Window):
 
 	def __init__(self):
 		# double_buffer = True, depth_size = 24
 		# window flip() is invoked after every on_draw() event
-		super(GameWindow, self).__init__()
+		super(Window, self).__init__()
 		self.label = pyglet.text.Label('Gebrauchswert')
 
 		self.batch = pyglet.graphics.Batch()
@@ -24,7 +24,7 @@ class GameWindow(pyglet.window.Window):
 
 		self.vertices = graphics.raster()
 
-		self.world = world.map()
+		self.world = world.map
 
 
 	def on_draw(self):
