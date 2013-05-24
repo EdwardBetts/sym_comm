@@ -64,6 +64,7 @@ class Window(pyglet.window.Window):
 		self.batch.draw() # jaja
 		
 		inhabitants.draw()
+		inhabitants.update()
 		
 		self.jaja.x += rnd(0, 2)
 		self.jaja.y += rnd(0, 2)
