@@ -22,8 +22,8 @@ if __name__ == '__main__':
 
 
 	
-	print world.map
-	for tile in world.map.tiles.values():
+	print world.get()
+	for tile in world.get().tiles.values():
 		if len(tile.get_bounds()) != 8:
 			print tile.x, tile.y, tile.get_bounds()
 

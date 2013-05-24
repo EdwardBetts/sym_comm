@@ -1,7 +1,9 @@
 import world.tilemap
 import game
+import inhabitants
+#import world.inhabitants
 
-__all__ = ["worldmap"]
+#__all__ = ["tilemap", "inhabitants"]
 __doc__="restructuredtext"
 
 
@@ -9,4 +11,8 @@ __doc__="restructuredtext"
 ### Instantiate and initialize tile map ###
 width, height = game.mapsize
 maxelevation = game.mapelevation
-map=world.tilemap.create(width, height, maxelevation)
+tilemap=tilemap.create(width, height, maxelevation)
+
+def get():
+	return tilemap
+

@@ -229,6 +229,23 @@ class Map(object):
 					self.tile(x, y).set_elevation(topo[y][x])
 
 
+	# takes a point identified by a pair of float values
+	# computes screen coordinates of that point
+	def ground_position(self, x, y):
+		# retrieve surrounded nodes
+		ix, iy = (int(x), int(y))
+		nodes = [self.tile(ix, iy), self.tile(ix+1, iy), 
+						self.tile(ix, iy+1), self.tile(ix+1, iy+1)]
+		if all(map(lambda x:x, nodes)):
+			vx,vy = (x-ix, y-iy)
+			param = [(0,1,0), (0,1,1), (2,3,0), (2,3,1)]
+			vcut = [nodes[p1].pos[ax]+(nodes[p2].pos[ax]-nodes[p1].pos[ax])*vx
+				for p1, p2, ax in	param]
+			rx = vcut[0]+(vcut[2]-vcut[0])*vy
+			ry = vcut[1]+(vcut[3]-vcut[1])*vy
+			return (rx,ry)
+		return None
+
 	# REPR
 	def __repr__(self):
 		"""
@@ -289,6 +306,8 @@ def create(width, height, maxelevation):
 		topo.init_map(maxelevation)
 	return topo
 
+def get():
+	return topo
 
 # A* path finding initiator
 def find_path(orig, dest):

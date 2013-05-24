@@ -6,6 +6,9 @@ import media
 import graphics
 import world
 from game import view
+from world import inhabitants
+from world.inhabitants import jaja
+
 
 class Window(pyglet.window.Window):
 
@@ -27,9 +30,12 @@ class Window(pyglet.window.Window):
 		impt = pyglet.image.SolidColorImagePattern((100,180,90,200))
 		self.bg = pyglet.image.create(800,600, impt)
 
-		self.worldimage = world.map.image()
+		self.worldimage = world.get().image()
 		self.viewport = view.create(self, self.width/2,self.height/2)
 		
+		world.inhabitants.jaja.create(6,5)
+		world.inhabitants.jaja.create(10,6)
+		world.inhabitants.jaja.create(4,8)
 
 
 	def on_resize(self, width, height):
@@ -56,6 +62,8 @@ class Window(pyglet.window.Window):
 		self.clock.draw() # clock
 
 		self.batch.draw() # jaja
+		
+		inhabitants.draw()
 		
 		self.jaja.x += rnd(0, 2)
 		self.jaja.y += rnd(0, 2)
