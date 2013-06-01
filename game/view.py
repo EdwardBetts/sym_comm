@@ -26,10 +26,12 @@ class Camera:
 		self.ortho=map(lambda x:x[0]+x[1]*self.zoom, zip([self.x,self.y]*2, corners))
 		self.width, self.height = (width, height)
 	
+	# handles zoom. 1=normal, <1 smaller area visible, 
+	# >1 larger area visible
 	def update_zoom(self, pos, steps):
 		self.zoom *= .95**steps
-		self.x += (pos[0]-self.width/2)*steps/20
-		self.y += (pos[1]-self.height/2)*steps/20
+		self.move(-(pos[0]-self.width/2)*steps/10,
+			-(pos[1]-self.height/2)*steps/10)
 		self.update()
 		
 	def move(self, dx, dy):

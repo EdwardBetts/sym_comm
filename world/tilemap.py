@@ -183,14 +183,10 @@ class Map(object):
 		while Tile.counter < self.width*self.height:
 			n = Tile()
 			self.tiles[(n.x,n.y)] = n
-
 		print "   map tiles instantiated: %d" % Tile.counter
-
 		for pos,tile in self.tiles.items():
 			tile.assign_neighbours()
-
 		self.init_heightmap(maxheight)
-
 		for pos,tile in self.tiles.items():
 			tile.assign_bounds()
 
@@ -208,11 +204,11 @@ class Map(object):
 		# initiate heightmap with random values
 		for y in range(self.height):
 			for x in range(self.width):
-				elv = rndf()**20*maxheight
+				elv = rndf()**50*maxheight
 				self.tile(x,y).elevation = elv
 		# smooth heightmap by calculating means of each
 		# tile's neighbours elevation values
-		for i in range(4):
+		for i in range(12):
 			topo = []
 			for y in range(self.height):
 				topo.append([])
@@ -222,7 +218,6 @@ class Map(object):
 						sum([nn.elevation for nn in
 						n.neighbours.values()+[n]])
 						/ (len(n.neighbours)+1.))
-
 			# assign smoothened heightmap values to tile instances
 			for y in range(self.height):
 				for x in range(self.width):

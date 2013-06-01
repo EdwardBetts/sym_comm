@@ -19,16 +19,16 @@ class Window(pyglet.window.Window):
 		super(Window, self).__init__(resizable=True, config=config)
 		self.label = pyglet.text.Label('Gebrauchswert')
 
-		self.batch = pyglet.graphics.Batch()
-		self.jaja = pyglet.sprite.Sprite(
-			media.inhabitant('jaja01'), batch=self.batch)
+		#self.batch = pyglet.graphics.Batch()
+		#self.jaja = pyglet.sprite.Sprite(
+			#media.inhabitant('jaja01'), batch=self.batch)
 
 		self.clock = pyglet.clock.ClockDisplay()
 		#pyglet.clock.schedule_interval(self.update, 1./24)
 		pyglet.clock.set_fps_limit(36)
 
-		impt = pyglet.image.SolidColorImagePattern((100,180,90,200))
-		self.bg = pyglet.image.create(800,600, impt)
+		#impt = pyglet.image.SolidColorImagePattern((100,180,90,200))
+		#self.bg = pyglet.image.create(800,600, impt)
 
 		self.worldimage = world.get().image()
 		self.viewport = view.create(self, self.width/2,self.height/2)
@@ -54,20 +54,21 @@ class Window(pyglet.window.Window):
 		
 
 	def on_draw(self):
+		glClear(GL_COLOR_BUFFER_BIT)
 		pyglet.clock.tick() # force framerate set above
-		self.bg.blit(0,0)
+		#self.bg.blit(0,0)
 		self.label.draw()
 
 		self.worldimage.draw() # map
 		self.clock.draw() # clock
 
-		self.batch.draw() # jaja
+		#self.batch.draw() # jaja
 		
 		inhabitants.draw()
 		inhabitants.update()
 		
-		self.jaja.x += rnd(0, 2)
-		self.jaja.y += rnd(0, 2)
+		#self.jaja.x += rnd(0, 2)
+		#self.jaja.y += rnd(0, 2)
 
 
 window = None
