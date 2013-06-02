@@ -20,12 +20,10 @@ if __name__ == '__main__':
 	print pyglet.gl.gl_info.get_version()
 	print pyglet.gl.gl_info.get_renderer()
 
-
-	
 	#print world.get()
-	for tile in world.get().tiles.values():
-		if len(tile.get_bounds()) != 8:
-			print tile.x, tile.y, tile.get_bounds()
+	#for tile in world.get().tiles.values():
+		#if len(tile.get_bounds()) != 8:
+			#print tile.x, tile.y, tile.get_bounds()
 
 	window = game.window.create()
 	pyglet.app.run()

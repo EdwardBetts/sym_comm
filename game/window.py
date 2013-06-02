@@ -5,6 +5,7 @@ from random import randint as rnd
 import media
 import graphics
 import world
+import world.pathfinder
 from game import view
 from world import inhabitants
 from world.inhabitants import jaja
@@ -42,6 +43,10 @@ class Window(pyglet.window.Window):
 		world.inhabitants.jaja.create(10,6)
 		world.inhabitants.jaja.create(4,8)
 
+		self.pathfinder = world.pathfinder.find_path(
+			world.get().tile(20,20),
+			world.get().tile(40,40))
+
 
 	def on_resize(self, width, height):
 		self.viewport.update()
@@ -74,6 +79,13 @@ class Window(pyglet.window.Window):
 		
 		inhabitants.draw()
 		inhabitants.update()
+		
+		if self.pathfinder:
+			if self.pathfinder.result():
+				print 'found path!'
+				for n in self.pathfinder.result():
+					print n.x, n.y
+				self.pathfinder = None
 		
 		#self.jaja.x += rnd(0, 2)
 		#self.jaja.y += rnd(0, 2)

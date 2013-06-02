@@ -42,6 +42,7 @@ class Tile(object):
 
 		self.x = ID % topo.width
 		self.y = ID // topo.width
+		self.ID = ID
 		# topological elevation of this map tile; heightmap
 		# feature
 		self.elevation = 0
@@ -212,11 +213,13 @@ class Map(object):
 	def init_heightmap(self, maxheight):
 		# create elevation seed points
 		clusters=[]
-		for i in range(self.width*self.height/50):
+		for i in range(min(self.width*self.height/100,200)):
 			clusters+=[(rnd(0,self.width-1), rnd(0,self.height-1),
-				rndf()**3*maxheight)]
+				rndf()**2*maxheight)]
+		print 'generate heightmap'
 		# assign elevation init values with clustering algorithm
 		for y in range(self.height):
+			print '\r','.'*(30*y/self.height),
 			for x in range(self.width):
 				t = self.tile(x,y)
 				clsts = [((c[0]-x)**2+(c[1]-y)**2, c[2]) for c in clusters]
@@ -227,9 +230,11 @@ class Map(object):
 					t.elevation=0
 		# smooth heightmap by calculating means of each
 		# tile's neighbours elevation values
-		for i in range(2):
+		iterations=2
+		for i in range(iterations):
 			topo = []
 			for y in range(self.height):
+				print '\r', '#'*(30*(y+i*self.height)/self.height/iterations),
 				topo.append([])
 				for x in range(self.width):
 					n = self.tile(x,y)
@@ -308,9 +313,8 @@ class Map(object):
 					self.batch.add_indexed(4, pyglet.gl.GL_TRIANGLES, None,
 						[0,1,2,0,2,3],
 						('v2i', tile.get_bounds()),
-						('t2f', (0., 0., .1, 0., .1, .1, 0., .1)),
+						('t2f', (0., 0., .12, 0., .12, .12, 0., .12)),
 						('c3B', cols))
-
 		return self.batch
 
 
