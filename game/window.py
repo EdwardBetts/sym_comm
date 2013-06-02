@@ -17,7 +17,12 @@ class Window(pyglet.window.Window):
 		# window flip() is invoked after every on_draw() event
 		config = Config(double_buffer=True)
 		super(Window, self).__init__(resizable=True, config=config)
-		self.label = pyglet.text.Label('Gebrauchswert')
+		glClearColor(0.1,0.2,0,1)
+		glEnable(GL_TEXTURE_2D)
+		glShadeModel(GL_SMOOTH)
+
+
+		#self.label = pyglet.text.Label('Gebrauchswert')
 
 		#self.batch = pyglet.graphics.Batch()
 		#self.jaja = pyglet.sprite.Sprite(
@@ -57,9 +62,12 @@ class Window(pyglet.window.Window):
 		glClear(GL_COLOR_BUFFER_BIT)
 		pyglet.clock.tick() # force framerate set above
 		#self.bg.blit(0,0)
-		self.label.draw()
+		#self.label.draw()
 
+		glEnable(GL_TEXTURE_2D)
 		self.worldimage.draw() # map
+		glDisable(GL_TEXTURE_2D)
+		
 		self.clock.draw() # clock
 
 		#self.batch.draw() # jaja

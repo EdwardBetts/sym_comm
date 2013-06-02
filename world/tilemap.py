@@ -1,8 +1,9 @@
 import pyglet.graphics as gfx
-import pyglet.gl
+from pyglet.gl import *
 from random import randint as rnd
 from random import random as rndf
 import game
+import media
 # -*- coding: utf-8 -*-
 
 __doc__="restructuredtext"
@@ -17,7 +18,13 @@ nrel = [(u'n', 0,-1),
 	  (u'w',-1, 0),
 	 (u'nw',-1,-1)]
 
-
+ground_texture = media.world_txt('ground.png')
+glBindTexture(GL_TEXTURE_2D, ground_texture.id)
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+print ground_texture.width, ground_texture.height
+#glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 32, 32, 
+#	0, GL_RGBA, GL_UNSIGNED_BYTE, ground_texture.get_image_data())
 
 # implementation of single tile map node
 class Tile(object):
@@ -91,12 +98,15 @@ class Tile(object):
 		2d coordinates of reference center point
 		"""
 		self.elevation = elevation
-		x, y = self.pos
+		x = self.x*20
+		y = (topo.height-self.y)*20
 		y += int(elevation)
 		self.pos = (x,y)
 
 
-
+	# creates an array of bounding coordinates for this
+	# tile's polygonal representation
+	# [tile itself, east neighbour, southeast, south]
 	def assign_bounds(self):
 		"""
 		assigns the coordinates of the polygon representing this
@@ -106,7 +116,6 @@ class Tile(object):
 		#mean = lambda x1,x2: (x1 + x2) // 2
 		#meany= lambda n1,n2: mean(mean(n1.pos[1], n1.neighbours[u'n'].pos[1]),
 								#mean(n2.pos[1], n2.neighbours[u'n'].pos[1]))
-
 		x = self.pos[0]
 		#self.bounds = [ x-10, meany(n['w'], self),
 						#x+10, meany(n['e'], self),
@@ -206,9 +215,18 @@ class Map(object):
 			for x in range(self.width):
 				elv = rndf()**50*maxheight
 				self.tile(x,y).elevation = elv
+		# random growth of hills
+		for i in range(self.width*self.height):
+			t = self.tiles.values()[rnd(0,len(self.tiles)-1)]
+			t.elevation = max([t.elevation]+
+				[nn.elevation for nn in t.neighbours.values()])
+		# flatten valleys
+		for t in self.tiles.values():
+			if t.elevation < maxheight*3/4:
+				t.elevation=0
 		# smooth heightmap by calculating means of each
 		# tile's neighbours elevation values
-		for i in range(12):
+		for i in range(3):
 			topo = []
 			for y in range(self.height):
 				topo.append([])
@@ -280,10 +298,17 @@ class Map(object):
 			for x in range(0,self.width):
 				for y in range(0,self.height):
 					tile = self.tiles[(x,y)]
+					val=200
+					for cx, cy in [(1,0), (1,1)]:
+						nn = self.tiles.get((x+cx,y+cy), None)
+						if nn:
+							val+=int(nn.elevation-tile.elevation)
+					cols=(max(0,min(255,val)),)*12
 					self.batch.add_indexed(4, pyglet.gl.GL_TRIANGLES, None,
 						[0,1,2,0,2,3],
 						('v2i', tile.get_bounds()),
-						('c3B', (150,0,0,100,50,0,50,150,0,100,200,50)))
+						('t2f', (0., 0., .1, 0., .1, .1, 0., .1)),
+						('c3B', cols))
 
 		return self.batch
 

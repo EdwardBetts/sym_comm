@@ -2,7 +2,7 @@ import pyglet
 import media
 import world.inhabitants
 
-image = media.inhabitant('jaja01')
+image = media.inhabitant_txt('jaja01')
 
 class Jaja(world.inhabitants.Inhabitant):
 
