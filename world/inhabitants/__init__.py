@@ -31,7 +31,7 @@ class Inhabitant(object):
 		grpos = world.get().ground_position(self.x, self.y)
 		if grpos:
 			x,y=grpos
-			self.sprite.set_position(x-10,y-20)
+			self.sprite.set_position(x-10,y)
 
 	def move(self):
 		dx = self.path[0].x-self.x

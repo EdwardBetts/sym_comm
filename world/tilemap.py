@@ -210,23 +210,24 @@ class Map(object):
 
 	# set up heightmap
 	def init_heightmap(self, maxheight):
-		# initiate heightmap with random values
+		# create elevation seed points
+		clusters=[]
+		for i in range(self.width*self.height/50):
+			clusters+=[(rnd(0,self.width-1), rnd(0,self.height-1),
+				rndf()**3*maxheight)]
+		# assign elevation init values with clustering algorithm
 		for y in range(self.height):
 			for x in range(self.width):
-				elv = rndf()**50*maxheight
-				self.tile(x,y).elevation = elv
-		# random growth of hills
-		for i in range(self.width*self.height):
-			t = self.tiles.values()[rnd(0,len(self.tiles)-1)]
-			t.elevation = max([t.elevation]+
-				[nn.elevation for nn in t.neighbours.values()])
-		# flatten valleys
-		for t in self.tiles.values():
-			if t.elevation < maxheight*3/4:
-				t.elevation=0
+				t = self.tile(x,y)
+				clsts = [((c[0]-x)**2+(c[1]-y)**2, c[2]) for c in clusters]
+				nearest=sorted(clsts, key=lambda c:c[0])[0]
+				if nearest[1] > maxheight/2:
+					t.elevation=nearest[1]+rndf()**2*10
+				else:
+					t.elevation=0
 		# smooth heightmap by calculating means of each
 		# tile's neighbours elevation values
-		for i in range(3):
+		for i in range(2):
 			topo = []
 			for y in range(self.height):
 				topo.append([])
