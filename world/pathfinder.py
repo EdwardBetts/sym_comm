@@ -18,20 +18,39 @@ class OpenList:
 		# directory of current cost values (f) and the nodes
 		# available at these costs. For fast estimation of
 		# the currently cheapest known node
-		self.costs = {0:[startnode.ID]}
+		self.costs = {0:[startnode.ID]} 
+		#TODO: single candidate instead of list? 
+		# (never more than 1 element anyway)
 	
 	def best(self):
+		# TODO: maintain cheapest f instead of calculating min?
 		cheapest = min(self.costs.keys())
 		cheapest_nodes = self.costs.get(cheapest)
+		if len(cheapest_nodes)>1:
+			print cheapest_nodes
 		ID = cheapest_nodes.pop(0)
+		node = self.nodes.pop(ID)
 		if len(cheapest_nodes)<1:
 			self.costs.pop(cheapest)
-		node = self.nodes.pop(ID)
 		return node
 	
 	def put(self, (node, f, g, h, pred)):
+		# TODO: cheat a bit by not storing nodes that are ridiculously
+		# expensive?
 		self.nodes[node.ID] = (node, f, g, h, pred)
 		# try to retrieve list of nodes available for cost value f
+		nodes_for_cost = self.costs.get(f, None)
+		if not nodes_for_cost:
+			self.costs[f] = [node.ID]
+		else:
+			nodes_for_cost.append(node.ID)
+	
+	def update(self, (node, f, g, h, pred)):
+		old_cost = self.nodes.get(node.ID)[1]
+		self.nodes[node.ID] = (node, f, g, h, pred)
+		self.costs.get(old_cost).remove(node.ID)
+		if len(self.costs.get(old_cost))<1:
+			self.costs.pop(old_cost)
 		nodes_for_cost = self.costs.get(f, None)
 		if not nodes_for_cost:
 			self.costs[f] = [node.ID]
@@ -43,7 +62,13 @@ class OpenList:
 	
 	def isOpen(self, node):
 		return node.ID in self.nodes
-
+	
+	def __len__(self):
+		return len(self.nodes)
+		
+# class for performing an A* path search between a startnode
+# and an endnode. Instances of this class are automatically
+# called for a single iteration step multiple times per second.
 class AStar:
 	running = []
 	def __init__(self, startnode, endnode):
@@ -52,7 +77,7 @@ class AStar:
 		# key: node pos/id, value: (node, f, g, h, predecessor)
 		self.closed = {}
 		# same here
-		self.open = {startnode.ID:(startnode,0, 0, 0, None)}
+		self.open = OpenList(startnode)
 		self.steps=0
 		self.path=None
 		# rendering for debugging
@@ -89,7 +114,6 @@ class AStar:
 					[j for i in range(len(self.path)-1) for j in range(i,i+2)],
 					('v2i', tuple(coords)),
 					('c3B', (255,0,0)*len(self.path)))
-				print coords
 			self.batch.draw()
 	
 	# performs termination stuff, like rebuilding the resulting
@@ -110,36 +134,32 @@ class AStar:
 		path.reverse()
 		self.path=path
 		print len(self.path)
-		print AStar.running
+		#print AStar.running
 					
 	# perform one step of search (handle best tile from openen list)
 	def search(self):
 		self.steps+=1
 		# retrieve tile with best estimated cost from open list
-		# TODO: can this be optimized?
-		node = sorted(self.open.values(), key=lambda x:x[1])[0]
+		node = self.open.best()
 		tile=node[0]
-		del self.open[tile.ID]
 		self.closed[tile.ID] = node
+		# arrival?
+		if tile == self.dest:
+			self.terminate(tile)
+			return
 		# for all neighbours of that tile
 		for direction, neighbour in tile.neighbours.items():
-			# arrival?
-			if neighbour == self.dest:
-				self.terminate(tile)
-				return
-			# unless destination is reached, go on
-			dist = [20,20*diagonal_cost][len(direction)-1]
-			g = self.cost_between(tile, neighbour, dist=dist)
-			g = max(20,g)+node[2]
-			h = self.est_h(neighbour)
-			if neighbour.ID in self.closed:
-				if self.closed[neighbour.ID][2] > g:
-					self.closed[neighbour.ID] = (neighbour, g+h, g, h, node)
-			elif neighbour.ID in self.open:
-				if self.open[neighbour.ID][2] > g:
-					self.open[neighbour.ID] = (neighbour, g+h, g, h, node)
-			else:
-				self.open[neighbour.ID] = (neighbour, g+h, g, h, node)
+			if not neighbour.ID in self.closed:
+				dist = [20,20*diagonal_cost][len(direction)-1]
+				g = self.cost_between(tile, neighbour, dist=dist)
+				#g = max(20,g)+node[2]
+				g += node[2]
+				h = self.est_h(neighbour)
+				if self.open.isOpen(neighbour):
+					if self.open.get(neighbour)[2] > g:
+						self.open.update((neighbour, g+h, g, h, node))
+				else:
+					self.open.put((neighbour, g+h, g, h, node))
 	
 	# estimate cost for shortest possible path from a node to the target node
 	def est_h(self, tile):
@@ -147,6 +167,7 @@ class AStar:
 
 	# calculates the cost of getting from a to b
 	# on basis of an optionally given distance
+	# TODO: move to tile map module?
 	def cost_between(self, a, b, dist=None):
 		if not dist:
 			# calculate number of steps diagonally and along remaining axis
@@ -158,7 +179,13 @@ class AStar:
 		walkability = 1+2/(a.walkability+b.walkability)
 		# consider elevation gap between test node and destination
 		slope = b.elevation - a.elevation
-		return 20*dist * walkability + slope*10
+		if dist>0:
+			slope /= dist
+		# make climbing a hill more hard than going it down is easy
+		# to get finder to avoid crossing hills
+		if slope>0:
+			slope*=10
+		return max(20*dist, 20*dist * walkability + slope*10)
 	
 
 def find_path(startnode, endnode):
@@ -167,4 +194,4 @@ def find_path(startnode, endnode):
 	nodes on every call of result()"""
 	return AStar(startnode, endnode)
 
-pyglet.clock.schedule_interval(AStar.perform, .1)
+pyglet.clock.schedule_interval(AStar.perform, .025)
