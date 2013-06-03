@@ -1,8 +1,9 @@
+import math
+from random import randint as rnd
 from pyglet.graphics import Batch
 from pyglet.sprite import Sprite
 import world
-import math
-import random
+from world.pathfinder import find_path
 
 #import jaja
 
@@ -14,21 +15,23 @@ __doc__="restructuredtext"
 batch = Batch()
 registry = []
 
-class Inhabitant(object):
+world = world.get()
 
+
+class Inhabitant(object):
 	def __init__(self, img, x, y):
 		super(Inhabitant, self).__init__()
 		register(self)
 		self.x, self.y = (x,y)
-		self.path = []
+		self.pathfinder=None
+		self.path = [] # extra copy for custom tumbling or alternative path factories
 		self.speed=.05
 		self.image = img
 		self.sprite = Sprite(img, batch=batch)
-		
 		self.update()
-		
+	
 	def update(self):
-		grpos = world.get().ground_position(self.x, self.y)
+		grpos = world.ground_position(self.x, self.y)
 		if grpos:
 			x,y=grpos
 			self.sprite.set_position(x-10,y)
@@ -38,6 +41,8 @@ class Inhabitant(object):
 		dy = self.path[0].y-self.y
 		if dx**2+dy**2 < .01:
 			self.path.pop(0)
+			if len(self.path)<1:
+				self.pathfinder=None
 		else:
 			r = math.sqrt(dx**2+dy**2)
 			dx *= self.speed/r
@@ -50,18 +55,28 @@ def register(being):
 	global registry
 	registry+=[being]
 
+# update all living beings currently registered at once
 def update():
 	for being in registry:
-		if len(being.path)>0:
+		if being.path and len(being.path)>0:
 			being.move()
+		elif being.pathfinder:
+			#if not being.pathfinder.isRunning():
+			being.path = being.pathfinder.result() #TODO: deep copy?
+			if being.path:
+				being.path = [n for n in being.path] #TODO: really neccessary?
 		else:
-			tile = world.get().tile(int(being.x), int(being.y))
-			for i in range(10):
-				tile=tile.neighbours.values()[random.randint(0,len(tile.neighbours)-1)]
-				being.path += [tile]
+			if rnd(0,100)<5:
+				tile = world.tile(int(being.x), int(being.y))
+				dest = world.tile(rnd(0,world.width-1), rnd(0,world.height-1))
+				being.pathfinder = find_path(tile, dest)
+				#for i in range(10):
+					#tile=tile.neighbours.values()[rnd(0,len(tile.neighbours)-1)]
+					#being.path += [tile]
 
 def draw():
+	for being in registry:
+		if being.pathfinder:
+			being.pathfinder.draw()
 	batch.draw()
 	
-
-#world = world.get()

@@ -1,6 +1,6 @@
 import world.tilemap
 import game
-import inhabitants
+#import inhabitants
 #import world.inhabitants
 
 #__all__ = ["tilemap", "inhabitants"]

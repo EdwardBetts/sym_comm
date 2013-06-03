@@ -43,9 +43,9 @@ class Window(pyglet.window.Window):
 		world.inhabitants.jaja.create(10,6)
 		world.inhabitants.jaja.create(4,8)
 
-		self.pathfinder = world.pathfinder.find_path(
-			world.get().tile(20,20),
-			world.get().tile(40,40))
+		#self.pathfinder = world.pathfinder.find_path(
+			#world.get().tile(5,25),
+			#world.get().tile(55,25))
 
 
 	def on_resize(self, width, height):
@@ -66,7 +66,6 @@ class Window(pyglet.window.Window):
 	def on_draw(self):
 		glClear(GL_COLOR_BUFFER_BIT)
 		pyglet.clock.tick() # force framerate set above
-		#self.bg.blit(0,0)
 		#self.label.draw()
 
 		glEnable(GL_TEXTURE_2D)
@@ -75,20 +74,15 @@ class Window(pyglet.window.Window):
 		
 		self.clock.draw() # clock
 
-		#self.batch.draw() # jaja
-		
+		#if self.pathfinder:
+			#if self.pathfinder.result():
+				#self.pathfinder.draw()
+				#j = world.inhabitants.registry[-1]
+				#if len(j.path)<1:
+					#j.path = self.pathfinder.result()
+
 		inhabitants.draw()
-		inhabitants.update()
-		
-		if self.pathfinder:
-			if self.pathfinder.result():
-				print 'found path!'
-				for n in self.pathfinder.result():
-					print n.x, n.y
-				self.pathfinder = None
-		
-		#self.jaja.x += rnd(0, 2)
-		#self.jaja.y += rnd(0, 2)
+		inhabitants.update()	
 
 
 window = None

@@ -78,26 +78,22 @@ class Tile(object):
 
 	# sets up links to neighbour nodes.
 	def assign_neighbours(self):
-		"""
-		identifies the adjacent map tiles of this tiles and
+		"""identifies the adjacent map tiles of this tiles and
 		stores them in the self.neighbours dictionary with
 		the respective relative cardinal direction as the key,
-		like 'n', 'sw', 'nw' etc.
-		"""
+		like 'n', 'sw', 'nw' etc."""
 		n = self.neighbours
-
 		for key,rx,ry in nrel:
-			neighbour = topo.tile((self.x+rx) % topo.width,
-							(self.y+ry)) # % topo.height)
+			#neighbour = topo.tile((self.x+rx) % topo.width,
+							#(self.y+ry)) # % topo.height)
+			neighbour = topo.tile(self.x+rx, self.y+ry)
 			if neighbour:
 				n[key] = neighbour
 
 
 	def set_elevation(self, elevation):
-		"""
-		sets the elevation value for this point. also, updates
-		2d coordinates of reference center point
-		"""
+		"""sets the elevation value for this point. also, updates
+		2d coordinates of reference center point"""
 		self.elevation = elevation
 		x = self.x*20
 		y = (topo.height-self.y)*20
@@ -109,32 +105,22 @@ class Tile(object):
 	# tile's polygonal representation
 	# [tile itself, east neighbour, southeast, south]
 	def assign_bounds(self):
-		"""
-		assigns the coordinates of the polygon representing this
-		map tile, taking adjacent tiles into account
-		"""
+		"""assigns the coordinates of the polygon representing this
+		map tile, taking adjacent tiles into account"""
 		n = self.neighbours
-		#mean = lambda x1,x2: (x1 + x2) // 2
-		#meany= lambda n1,n2: mean(mean(n1.pos[1], n1.neighbours[u'n'].pos[1]),
-								#mean(n2.pos[1], n2.neighbours[u'n'].pos[1]))
 		x = self.pos[0]
-		#self.bounds = [ x-10, meany(n['w'], self),
-						#x+10, meany(n['e'], self),
-						#x+10, meany(n['se'], n['s']),
-						#x-10, meany(n['sw'], n['s']) ]
 		self.bounds=[x, self.pos[1]]
 		for nx,dir in [(x+20,'e'), (x+20,'se'), (x,'s')]:
 			if dir in n:
 				self.bounds+=[nx, n[dir].pos[1]]
 			else:
+				# TODO: nee!
 				self.bounds+=[nx, self.pos[1]+20*int('s' in dir)]
 
 
 	def get_bounds(self):
-		"""
-		returns an array of a four-point polygon representing
-		this map tile
-		"""
+		"""returns an array of a four-point polygon representing
+		this map tile"""
 		if not self.bounds:
 			# start top-left, go clockwise
 			self.assign_bounds()
@@ -142,10 +128,8 @@ class Tile(object):
 
 
 	def accessability(self, tile):
-		"""
-		returns a value indicating how hard it is to walk from
-		this tile to a (most likely) adjacent tile 
-		"""
+		"""returns a value indicating how hard it is to walk from
+		this tile to a (most likely) adjacent tile """
 		#TODO: 
 		g = [0,1,1.5][int(self.x!=tile.x)+int(self.y!=tile.y)]
 		g *= 1+2/(self.walkability+tile.walkability)
@@ -185,11 +169,9 @@ class Map(object):
 
 
 	def init_map(self, maxheight):
-		"""
-		creates links between adjacent tiles, generates heightmap
+		"""creates links between adjacent tiles, generates heightmap
 		and computes coordinates for graphical representation of
-		contained tiles
-		"""
+		contained tiles"""
 		while Tile.counter < self.width*self.height:
 			n = Tile()
 			self.tiles[(n.x,n.y)] = n
@@ -203,9 +185,7 @@ class Map(object):
 
 	# return tile at requested position
 	def tile(self, x, y):
-		"""
-		returns the map tile at the given index ``(x,y)``
-		"""
+		"""returns the map tile at the given index ``(x,y)``"""
 		return self.tiles.get((x,y), None)
 
 
@@ -267,9 +247,7 @@ class Map(object):
 
 	# REPR
 	def __repr__(self):
-		"""
-		returns a string representation of the world's heighmap
-		"""
+		"""returns a string representation of the world's heighmap"""
 		out=[]
 		for y in range(self.height):
 			row = []
@@ -281,24 +259,15 @@ class Map(object):
 
 
 	def __len__(self):
-		"""
-		returns the size of this map, which is its width times
-		its height
-		"""
+		"""returns the size of this map, which is its width times
+		its height"""
 		return self.width*self.height
 
 
 	def image(self):
-		"""
-		dummy method that returns the graphical representation
-		of a random map tile as a vertex_list, just for debugging
-		"""
+		"""dummy method that returns the graphical representation
+		of a random map tile as a vertex_list, just for debugging"""
 		# http://packages.python.org/pyglet/api/pyglet.image.AbstractImage-class.html#blit_into
-		#tile = self.tiles.values()[rnd(0,len(self)-1)]
-		#vertices = gfx.vertex_list(4,
-		#	('v2i', tile.get_bounds()),
-		#	('c3B', (255,0,0,150,50,0,50,150,0,100,200,50)))
-	
 		if self.batch is None:
 			self.batch = gfx.Batch()
 			for x in range(0,self.width):
