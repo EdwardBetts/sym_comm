@@ -4,28 +4,48 @@ import pyglet.clock
 
 diagonal_cost=1.5
 
+# reminder: F, G and H of a node N mean:
+# G = cheapest known total cost of walking from startpoint to N
+# H = estimated cost of walking from N to destination point
+# F = G + H = estimated total cost of complete path via N
 
 class OpenList:
 	def __init__(self, startnode):
-		self.nodes = {startnode.ID:(0,0,0,None)}
+		# directory of open nodes, storing the node itself,
+		# cost values f, g, h and the node's predecessor
+		# under the node's ID
+		self.nodes = {startnode.ID:(startnode,0,0,0,None)}
+		# directory of current cost values (f) and the nodes
+		# available at these costs. For fast estimation of
+		# the currently cheapest known node
 		self.costs = {0:[startnode.ID]}
-		
+	
 	def best(self):
 		cheapest = min(self.costs.keys())
 		cheapest_nodes = self.costs.get(cheapest)
-		node = cheapest_nodes[0]
-		#TODO
+		ID = cheapest_nodes.pop(0)
+		if len(cheapest_nodes)<1:
+			self.costs.pop(cheapest)
+		node = self.nodes.pop(ID)
+		return node
 	
 	def put(self, (node, f, g, h, pred)):
-		#TODO
-		pass
-		
-		
+		self.nodes[node.ID] = (node, f, g, h, pred)
+		# try to retrieve list of nodes available for cost value f
+		nodes_for_cost = self.costs.get(f, None)
+		if not nodes_for_cost:
+			self.costs[f] = [node.ID]
+		else:
+			nodes_for_cost.append(node.ID)
+	
+	def get(self, node):
+		return self.nodes.get(node.ID, None)
+	
+	def isOpen(self, node):
+		return node.ID in self.nodes
 
 class AStar:
-
 	running = []
-
 	def __init__(self, startnode, endnode):
 		self.orig = startnode
 		self.dest = endnode
