@@ -2,7 +2,7 @@ import pyglet.graphics as gfx
 import pyglet.gl
 import pyglet.clock
 
-diagonal_cost=1.5
+diagonal_cost=1.42
 
 # reminder: F, G and H of a node N mean:
 # G = cheapest known total cost of walking from startpoint to N
@@ -20,7 +20,7 @@ class OpenList:
 		# the currently cheapest known node
 		self.costs = {0:[startnode.ID]} 
 		#TODO: single candidate instead of list? 
-		# (never more than 1 element anyway)
+		# (never more than 1 element anyway) edit: yes, there are.
 	
 	def best(self):
 		# TODO: maintain cheapest f instead of calculating min?
@@ -184,7 +184,7 @@ class AStar:
 		# make climbing a hill more hard than going it down is easy
 		# to get finder to avoid crossing hills
 		if slope>0:
-			slope*=10
+			slope*=20
 		return max(20*dist, 20*dist * walkability + slope*10)
 	
 
@@ -194,4 +194,4 @@ def find_path(startnode, endnode):
 	nodes on every call of result()"""
 	return AStar(startnode, endnode)
 
-pyglet.clock.schedule_interval(AStar.perform, .025)
+pyglet.clock.schedule_interval(AStar.perform, .1)

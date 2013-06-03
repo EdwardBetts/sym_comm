@@ -66,10 +66,11 @@ def update():
 			if being.path:
 				being.path = [n for n in being.path] #TODO: really neccessary?
 		else:
-			if rnd(0,100)<5:
-				tile = world.tile(int(being.x), int(being.y))
+			if rnd(0,100)<50:
+				tile = world.tile(int(round(being.x)), int(round(being.y)))
 				dest = world.tile(rnd(0,world.width-1), rnd(0,world.height-1))
-				being.pathfinder = find_path(tile, dest)
+				if tile.distance(dest) < 8:
+					being.pathfinder = find_path(tile, dest)
 				#for i in range(10):
 					#tile=tile.neighbours.values()[rnd(0,len(tile.neighbours)-1)]
 					#being.path += [tile]
