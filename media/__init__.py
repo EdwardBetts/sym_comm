@@ -44,7 +44,7 @@ def inhabitant_txt(filename):
 def world_tex(filename):
 	ret = load(filename, path_world)
 	if ret:
-		return ret.get_texture()
+		return ret #.get_texture()
 	return None
 	
 

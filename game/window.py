@@ -38,7 +38,7 @@ class Window(pyglet.window.Window):
 
 		self.worldimage = world.get().image()
 		self.viewport = view.create(self, self.width/2,self.height/2)
-		
+
 		world.inhabitants.jaja.create(6,5)
 		world.inhabitants.jaja.create(10,6)
 		world.inhabitants.jaja.create(4,8)
@@ -51,7 +51,7 @@ class Window(pyglet.window.Window):
 	def on_resize(self, width, height):
 		self.viewport.update()
 		return pyglet.event.EVENT_HANDLED
-        
+
 
 	def on_mouse_scroll(self,x, y, scroll_x, scroll_y):
 		self.viewport.update_zoom((x,y), scroll_y)
@@ -61,7 +61,7 @@ class Window(pyglet.window.Window):
 		if buttons & mouse.LEFT:
 			self.viewport.move(dx,dy)
 			# updates itself
-		
+
 
 	def on_draw(self):
 		glClear(GL_COLOR_BUFFER_BIT)
@@ -71,7 +71,7 @@ class Window(pyglet.window.Window):
 		glEnable(GL_TEXTURE_2D)
 		self.worldimage.draw() # map
 		glDisable(GL_TEXTURE_2D)
-		
+
 		self.clock.draw() # clock
 
 		#if self.pathfinder:
@@ -82,7 +82,7 @@ class Window(pyglet.window.Window):
 					#j.path = self.pathfinder.result()
 
 		inhabitants.draw()
-		inhabitants.update()	
+		inhabitants.update()
 
 
 window = None

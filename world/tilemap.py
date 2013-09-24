@@ -18,7 +18,8 @@ nrel = [(u'n', 0,-1),
 	  (u'w',-1, 0),
 	 (u'nw',-1,-1)]
 
-tex = media.world_tex('ground.png')
+#tex = media.world_tex('ground.png')
+tex = media.world_tex('ground_tex.png')
 data=tex.get_image_data().get_data('RGBA', tex.width*4)
 target=GL_TEXTURE_2D
 #tex=img.get_texture()
@@ -248,7 +249,7 @@ class Map(object):
 			vx,vy = (x-ix, y-iy)
 			param = [(0,1,0), (0,1,1), (2,3,0), (2,3,1)]
 			vcut = [nodes[p1].pos[ax]+(nodes[p2].pos[ax]-nodes[p1].pos[ax])*vx
-				for p1, p2, ax in	param]
+				for p1, p2, ax in param]
 			rx = vcut[0]+(vcut[2]-vcut[0])*vy
 			ry = vcut[1]+(vcut[3]-vcut[1])*vy
 			return (rx,ry)
@@ -279,6 +280,8 @@ class Map(object):
 		# http://packages.python.org/pyglet/api/pyglet.image.AbstractImage-class.html#blit_into
 		if self.batch is None:
 			self.batch = gfx.Batch()
+			glEnable(target)
+			glBindTexture(target, tid)
 			for x in range(0,self.width):
 				for y in range(0,self.height):
 					tile = self.tiles[(x,y)]
