@@ -18,23 +18,7 @@ nrel = [(u'n', 0,-1),
 	  (u'w',-1, 0),
 	 (u'nw',-1,-1)]
 
-#tex = media.world_tex('ground.png')
-tex = media.world_tex('ground_tex.png')
-data=tex.get_image_data().get_data('RGBA', tex.width*4)
-target=GL_TEXTURE_2D
-#tex=img.get_texture()
-tid=tex.id
-#tid=glGenTextures(1)
-#glActiveTexture?
-glEnable(target)
-glBindTexture(target, tid)
-glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-print tex.width, tex.height
-glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width, tex.width,
-	 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
-print tex.tex_coords
-glDisable(target)
+tex=None
 
 # implementation of single tile map node
 class Tile(object):
@@ -176,6 +160,7 @@ class Map(object):
 		self.height = height
 		self.tiles = {}
 		self.batch=None
+		self.tex = None
 
 
 	def init_map(self, maxheight):
@@ -278,27 +263,55 @@ class Map(object):
 		"""dummy method that returns the graphical representation
 		of a random map tile as a vertex_list, just for debugging"""
 		# http://packages.python.org/pyglet/api/pyglet.image.AbstractImage-class.html#blit_into
-		if self.batch is None:
-			self.batch = gfx.Batch()
-			glEnable(target)
-			glBindTexture(target, tid)
-			for x in range(0,self.width):
-				for y in range(0,self.height):
-					tile = self.tiles[(x,y)]
-					val=200
-					for cx, cy in [(1,0), (1,1)]:
-						nn = self.tiles.get((x+cx,y+cy), None)
-						if nn:
-							val+=int(nn.elevation-tile.elevation)
-					cols=(max(0,min(255,val)),)*12
-					self.batch.add_indexed(4, pyglet.gl.GL_TRIANGLES, None,
-						[0,1,2,0,2,3],
-						('v2i', tile.get_bounds()),
-						('t2f', (0,0,1,0,1,1,0,1)), #(0., 0., .12, 0., .12, .12, 0., .12)),
-						('c3B', cols))
+		if not self.tex:
+			self.tex = load_tex()
+		if self.tex:
+			#glEnable(self.tex.target)
+			glActiveTexture(GL_TEXTURE0+0)
+			glBindTexture(self.tex.target, self.tex.id)
+			if self.batch is None:
+				self.batch = gfx.Batch()
+				for x in range(0,self.width):
+					for y in range(0,self.height):
+						tile = self.tiles[(x,y)]
+						val=200
+						for cx, cy in [(1,0), (1,1)]:
+							nn = self.tiles.get((x+cx,y+cy), None)
+							if nn:
+								val+=int(nn.elevation-tile.elevation)
+						cols=(max(0,min(255,val)),)*12
+						self.batch.add_indexed(4, pyglet.gl.GL_TRIANGLES, None,
+							[0,1,2,0,2,3],
+							('v2i', tile.get_bounds()),
+							('t3f', self.tex.tex_coords), #(0., 0., .12, 0., .12, .12, 0., .12)),
+							('c3B', cols))
 		return self.batch
 
 
+
+def load_tex():
+	#tex = media.world_tex('ground.png')
+	t = pyglet.image.load('media/world/ground_tex.png')
+	tex = media.atlas.add(t)
+	if not tex:
+		return
+	#data=tex.get_image_data().get_data('RGBA', tex.width*4)
+	target=GL_TEXTURE_2D
+	#tex=img.get_texture()
+	#tid=tex.id
+	#tid=glGenTextures(1)
+	#glActiveTexture?
+	glEnable(tex.target)
+	glBindTexture(tex.target, tex.id)
+	glTexParameteri(tex.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+	glTexParameteri(tex.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+	print tex.width, tex.height
+	#glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width, tex.width,
+		 #0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+	print tex.tex_coords
+	#glDisable(target)
+	tex.save('t.png')
+	return tex
 
 
 # APi stuff

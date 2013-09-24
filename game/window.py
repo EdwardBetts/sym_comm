@@ -5,7 +5,6 @@ from random import randint as rnd
 import media
 import graphics
 import world
-import world.pathfinder
 from game import view
 from world import inhabitants
 from world.inhabitants import jaja
@@ -69,6 +68,7 @@ class Window(pyglet.window.Window):
 		#self.label.draw()
 
 		glEnable(GL_TEXTURE_2D)
+		glBindTexture(world.tilemap.tex.target,world.tilemap.tex.id)
 		self.worldimage.draw() # map
 		glDisable(GL_TEXTURE_2D)
 
