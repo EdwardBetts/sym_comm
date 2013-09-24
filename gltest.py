@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import pyglet
 import game.window
 import world

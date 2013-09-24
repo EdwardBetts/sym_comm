@@ -18,13 +18,22 @@ nrel = [(u'n', 0,-1),
 	  (u'w',-1, 0),
 	 (u'nw',-1,-1)]
 
-ground_texture = media.world_txt('ground.png')
-glBindTexture(GL_TEXTURE_2D, ground_texture.id)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-print ground_texture.width, ground_texture.height
-#glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 32, 32, 
-#	0, GL_RGBA, GL_UNSIGNED_BYTE, ground_texture.get_image_data())
+tex = media.world_tex('ground.png')
+data=tex.get_image_data().get_data('RGBA', tex.width*4)
+target=GL_TEXTURE_2D
+#tex=img.get_texture()
+tid=tex.id
+#tid=glGenTextures(1)
+#glActiveTexture?
+glEnable(target)
+glBindTexture(target, tid)
+glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+print tex.width, tex.height
+glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width, tex.width,
+	 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+print tex.tex_coords
+glDisable(target)
 
 # implementation of single tile map node
 class Tile(object):
@@ -282,7 +291,7 @@ class Map(object):
 					self.batch.add_indexed(4, pyglet.gl.GL_TRIANGLES, None,
 						[0,1,2,0,2,3],
 						('v2i', tile.get_bounds()),
-						('t2f', (0., 0., .12, 0., .12, .12, 0., .12)),
+						('t2f', (0,0,1,0,1,1,0,1)), #(0., 0., .12, 0., .12, .12, 0., .12)),
 						('c3B', cols))
 		return self.batch
 
