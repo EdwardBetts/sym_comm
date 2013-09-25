@@ -94,9 +94,9 @@ class Tile(object):
 			self._water = max(0, self._water - diff)
 		self.elevation = level
 		x = self.x*20
-		y = (topo.height-self.y)*20
+		y = (self.map.height-self.y)*20
 		y += int(level)
-		self.pos = (x,y)	
+		self.coord = (x,y)	
 
 	@property
 	def vegetation(self):
@@ -106,7 +106,7 @@ class Tile(object):
 	    self._veget = level
 	    self._walkbl = 5./(5+self._veget) / min(self._water/10,5.)
 
-	@property*
+	@property
 	def waterlevel(self):
 	    return self._water
 	@waterlevel.setter
@@ -223,8 +223,8 @@ class Map(object):
 
 	def __init__(self, width, height):
 		super(Map, self).__init__()
-		print "  instantiate world map object with dimensions %dx%d" \
-			% (width, height)
+		print "  instantiate world map object with dimensions {}x{}".format(
+			width, height)
 		self.width = width
 		self.height = height
 		self.tiles = {}
@@ -240,9 +240,11 @@ class Map(object):
 		while Tile.counter < self.width*self.height:
 			n = Tile(self)
 			self.tiles[(n.x,n.y)] = n
-		print "   map tiles instantiated: %d" % Tile.counter
+		print "   map tiles instantiated: {} / known to map: {}".format(
+			Tile.counter, len(self.tiles))
 		for pos,tile in self.tiles.items():
 			tile.assign_neighbours()
+		# generate heightmap
 		generator.init_heightmap(self, maxheight)
 		# compute coords for polygon representation
 		for pos,tile in self.tiles.items():

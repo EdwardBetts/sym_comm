@@ -18,10 +18,10 @@ surface = tilemap.new(width, height, maxelevation)
 def find_path(orig, dest):
 	"""
 	Returns a pathfinder instance?"""
-	x,y=orig.pos
-	orig = surface.tile(x,y)
-	x,y=dest.pos
-	dest = surface.tile(x,y)
+	#x,y=orig.pos
+	#orig = surface.tile(x,y)
+	#x,y=dest.pos
+	#dest = surface.tile(x,y)
 	return pathfinder.astar(orig, dest)
 
 

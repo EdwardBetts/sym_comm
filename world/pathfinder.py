@@ -89,9 +89,10 @@ class AStar:
 	@staticmethod
 	def perform(self):
 		for search in AStar.running:
-			i = 5
-			while search.runs() and i < 5:
+			i = 0
+			while len(search.open)>0 and i < 5:
 				search.search()
+				i += 1
 
 	
 	def runs(self):
@@ -113,7 +114,7 @@ class AStar:
 				self.batch = gfx.Batch()
 				coords = []
 				for n in self.path:
-					coords += n.pos
+					coords += n.coord
 				self.batch.add_indexed(len(self.path), pyglet.gl.GL_LINES, None,
 					[j for i in range(len(self.path)-1) for j in range(i,i+2)],
 					('v2i', tuple(coords)),

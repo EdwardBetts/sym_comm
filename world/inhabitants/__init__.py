@@ -19,14 +19,16 @@ registry = []
 topo = world.surface
 find_path = world.find_path
 
+
+
 class Inhabitant(object):
 	def __init__(self, img, x, y):
 		super(Inhabitant, self).__init__()
 		register(self)
-		self.x, self.y = (x,y)
-		self.pathfinder=None
+		self.x, self.y = x, y
+		self.pathfinder = None
 		self.path = [] # extra copy for custom tumbling or alternative path factories
-		self.speed=.05
+		self.speed = .05
 		self.image = img
 		self.sprite = Sprite(img, batch=batch)
 		self.update()
