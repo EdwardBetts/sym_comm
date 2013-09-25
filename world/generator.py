@@ -32,15 +32,18 @@ def init_heightmap(surface, maxheight):
 			t = surface.tile(x,y)
 			clsts = [((c[0]-x)**2+(c[1]-y)**2, c[2]) for c in clusters]
 			nearest=sorted(clsts, key=lambda c:c[0])[0]
-			if nearest[1] > maxheight/2:
+			if nearest[1] > maxheight/3:
 				t.elevation = nearest[1]+rndf()**2*10
 			elif nearest[1] < maxheight/5:
 				t.elevation = nearest[1]-rndf()**2*6
 			else:
 				t.elevation = t.elevation/1.1
+			t.elevation = t.elevation + maxheight/2.*(-.5+rndf())
+	smoothen(surface,2)
+
+def smoothen(surface, iterations):
 	# smooth heightmap by calculating means of each
 	# tile's neighbours elevation values
-	iterations=2
 	for i in range(iterations):
 		for x in range(surface.width):
 			surface.tile(x,surface.height-1).elevation=0
@@ -62,65 +65,62 @@ def init_heightmap(surface, maxheight):
 
 
 # let it rain!
-def rain(surface, amount):
+def rain(surface, amount, springs=None):
 	"""
 	Simulates a given amount of water falling down onto the given
 	tile map."""
 	print 'It rains: {} units of rain water!'.format(amount)
-	drops={} # key: tile, value: water
+	if springs:
+		print '{} springs.'.format(len(springs))
+	# water already in map
+	drops={t:t.waterlevel for t in surface.tiles.values()
+		if t.waterlevel > 0} # key: tile, value: water
 	while amount>0:
 		x,y = rnd(surface.width), rnd(surface.height)
 		t=surface.tile(x,y)
 		n = rndf()*10+1
 		drops[t] = drops.get(t,0) + n
 		amount -= n
-	# water already in map
-	for t in surface.tiles.values():
-		if t.waterlevel>0:
-			drops[t] = drops.get(t,0) + t.waterlevel
-	# water + elev
-	fldd={}
-	lvl = lambda n: n.elevation + fldd.get(n,0)
 	# 
-	for i in range(20):
-		fldd = {k:v for k,v in drops.items()}
+	wettest=1
+	count=0
+	while wettest>.05 and count<300:
+		count += 1
+		#fldd = {k:v for k,v in drops.items()}
+		fldd = {}
 		wettest=0
+		if springs:
+			for s in springs:
+				drops[s] = drops.get(s,0)+max(1./(1.+count/60),.2)
 		# flood
 		for t,w in drops.items():
 			for n in sorted(t.neighbours.values(), 
-				key=lambda n:fldd.get(n,0)):
+				key=lambda n:drops.get(n,0)):
 				# see how much this neighbour can possibly take
-				nw = fldd.get(n,0) 
+				nw = drops.get(n,0) 
 				gap = min(w + t.elevation - (nw + n.elevation), w)
 				# if neighbour has potential, transfer 1/3 of it
 				if gap > 0:
 					share = gap/3
-					nw += share
+					fldd[n] = fldd.get(n,0)+share
+					# erode!
+					if count<200:
+						if n.elevation > t.elevation-10:
+							n.elevation -= min(share,.3)
+					fldd[t] = fldd.get(t,0)-share
 					w -= share
-					fldd[n] = nw
-			fldd[t] = w
-			wettest = max(w, wettest)
-			# tile that can take surplus water from t
-			#below=sorted([ (n, lvl(t) - lvl(n)) 
-				#for n in t.neighbours.values()],
-				#key=lambda tp: tp[1]))
-			#surplus = below[-1][1]
-			# as long as neighbours can take water
-			#for n, gap in below:
-				#attempt = below.pop()
-				#n = attempt[0]
-				#if gap > 0:
-					#share = min(gap/3,w/3) # share with neighbour
-					#if share > 0:
-						#fldd[n] = fldd.get(n,0) + share # take
-						#fldd[t] = w - share # give
-						#surplus -= share
-			#wettest = max(surplus, wettest)
-		drops = fldd
-		print 'Wettest node has still {} units of water.'.format(
-			wettest)
-		print 'Total amount of water is {:.2f}'.format(sum(drops.values()))
+					wettest = max(share, wettest)
+		# update water map
+		for k,v in fldd.items():
+			level = drops.get(k,0)+v
+			drops[k] = level
+			if level<.05 and abs(v)<.05:
+				del drops[k]
+		#print 'Wettest transfer had {:.2f} units water.'.format(
+			#wettest),
+		#print 'Total amount is {:.2f}, max {:.2f}'.format(
+			#sum(drops.values()), max(drops.values()))
 	# ok enough
-	for t,w in drops.items():
-		if w > .1:
-			t.waterlevel = w
+	for t in surface.tiles.values():
+		t.waterlevel = drops.get(t,0)
+	print 'Total on map: {:.2f}'.format(surface.water())

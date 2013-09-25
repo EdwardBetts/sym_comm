@@ -12,7 +12,12 @@ width, height = game.mapsize
 maxelevation = game.mapelevation
 
 surface = tilemap.new(width, height, maxelevation)
-tilemap.generator.rain(surface, 100)
+for i in range(6):
+	tilemap.generator.rain(surface, 200, 
+		springs=[s for s in surface.highest(50)[::10]])
+tilemap.generator.rain(surface, 500)
+tilemap.generator.smoothen(surface,2)
+surface.init_mesh()
 
 # A* path finding initiator
 def find_path(orig, dest):

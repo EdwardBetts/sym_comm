@@ -104,7 +104,7 @@ class Tile(object):
 	@vegetation.setter
 	def vegetation(self, level):
 	    self._veget = level
-	    self._walkbl = 5./(5+self._veget) / min(self._water/10,5.)
+	    self._walkbl = 5./(5+self._veget) / min(1.+self._water/10,5.)
 
 	@property
 	def waterlevel(self):
@@ -112,9 +112,9 @@ class Tile(object):
 	@waterlevel.setter
 	def waterlevel(self, level):
 	    self.elevation = self.elevation-self._water
-	    self._water = level
-	    self.elevation = self.elevation+self._water
-	    self._walkbl = 5./(5+self._veget) / min(self._water/10,5.)
+	    self._water = max(0,level)
+	    self.elevation += self._water
+	    self._walkbl = 5./(5+self._veget) / min(1.+self._water/10,5.)
 
 	@property
 	def walkability(self):
@@ -242,12 +242,17 @@ class Map(object):
 			self.tiles[(n.x,n.y)] = n
 		print "   map tiles instantiated: {} / known to map: {}".format(
 			Tile.counter, len(self.tiles))
-		for pos,tile in self.tiles.items():
+		for tile in self.tiles.values():
 			tile.assign_neighbours()
 		# generate heightmap
 		generator.init_heightmap(self, maxheight)
 		# compute coords for polygon representation
-		for pos,tile in self.tiles.items():
+
+
+	def init_mesh(self):
+		for tile in self.tiles.values():
+			tile.level = tile.elevation
+		for tile in self.tiles.values():
 			tile.assign_bounds()
 
 
@@ -257,7 +262,13 @@ class Map(object):
 		return self.tiles.get((x,y), None)
 
 
+	# the total amount of water on this map
+	def water(self):
+		return sum([t.waterlevel for t in self.tiles.values()])
 
+	def highest(self, n):
+		return sorted(self.tiles.values(), 
+			key=lambda t:t.elevation-t._water)[-n:][::-1]
 
 	# takes a point identified by a pair of float values
 	# computes screen coordinates of that point
