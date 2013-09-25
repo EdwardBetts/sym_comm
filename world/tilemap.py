@@ -86,7 +86,7 @@ class Tile(object):
 		self.elevation = level
 		x = self.x*20
 		y = (topo.height-self.y)*20
-		y += int(elevation)
+		y += int(level)
 		self.pos = (x,y)	
 
 	@property
@@ -282,7 +282,7 @@ class Map(object):
 			# assign smoothened heightmap values to tile instances
 			for y in range(self.height):
 				for x in range(self.width):
-					self.tile(x, y).elevation = topo[y][x]+2.
+					self.tile(x, y).level = topo[y][x]+2.
 
 
 	# takes a point identified by a pair of float values
