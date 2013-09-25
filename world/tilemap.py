@@ -267,10 +267,12 @@ class Map(object):
 			self.tex = load_tex()
 		if self.tex:
 			#glEnable(self.tex.target)
-			glActiveTexture(GL_TEXTURE0+0)
-			glBindTexture(self.tex.target, self.tex.id)
 			if self.batch is None:
 				self.batch = gfx.Batch()
+				glActiveTexture(GL_TEXTURE0+0)
+				glBindTexture(self.tex.target, self.tex.id)
+				txmx=self.tex.tex_coords[3]-self.tex.tex_coords[0]
+				txmy=self.tex.tex_coords[7]-self.tex.tex_coords[4]
 				for x in range(0,self.width):
 					for y in range(0,self.height):
 						tile = self.tiles[(x,y)]
@@ -280,10 +282,22 @@ class Map(object):
 							if nn:
 								val+=int(nn.elevation-tile.elevation)
 						cols=(max(0,min(255,val)),)*12
+						# 
+						cns = [(n.elevation>20+3*rndf(),n.elevation<.5) 
+							for n in [tile]+[tile.neighbours[d]
+										for d in ['e', 'ne', 'n']
+										if d in tile.neighbours]]
+						# gras, wasser tex ids
+						gx = sum([int(v[0])*2**i for i,v in enumerate(cns)])
+						wx = sum([int(v[1])*2**i for i,v in enumerate(cns)])
+						coor = (wx*txmx/16,gx*txmy/16,
+										(wx+1)*txmx/16,gx*txmy/16,
+										(wx+1)*txmx/16,(gx+1)*txmy/16,
+										wx*txmx/16,(gx+1)*txmy/16)
 						self.batch.add_indexed(4, pyglet.gl.GL_TRIANGLES, None,
 							[0,1,2,0,2,3],
 							('v2i', tile.get_bounds()),
-							('t3f', self.tex.tex_coords), #(0., 0., .12, 0., .12, .12, 0., .12)),
+							('t2f', coor), #(0., 0., .12, 0., .12, .12, 0., .12)),
 							('c3B', cols))
 		return self.batch
 

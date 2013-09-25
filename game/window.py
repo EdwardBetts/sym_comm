@@ -70,7 +70,7 @@ class Window(pyglet.window.Window):
 		glEnable(GL_TEXTURE_2D)
 		glBindTexture(world.tilemap.tex.target,world.tilemap.tex.id)
 		self.worldimage.draw() # map
-		glDisable(GL_TEXTURE_2D)
+		#glDisable(GL_TEXTURE_2D)
 
 		self.clock.draw() # clock
 
