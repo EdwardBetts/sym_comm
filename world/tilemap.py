@@ -104,12 +104,12 @@ class Tile(object):
 		n = self.neighbours
 		x = self.pos[0]
 		self.bounds=[x, self.pos[1]]
-		for nx,dir in [(x+21,'e'), (x+21,'se'), (x,'s')]:
+		for nx,dir in [(x+20,'e'), (x+20,'se'), (x,'s')]:
 			if dir in n:
 				self.bounds+=[nx, n[dir].pos[1]]
 			else:
 				# TODO: nee!
-				self.bounds+=[nx, self.pos[1]+21*int('s' in dir)]
+				self.bounds+=[nx, self.pos[1]+20*int('s' in dir)]
 
 
 	def get_bounds(self):
@@ -191,6 +191,13 @@ class Map(object):
 		for i in range(min(self.width*self.height/100,200)):
 			clusters+=[(rnd(0,self.width-1), rnd(0,self.height-1),
 				(1.1*rndf()**2-.1)*maxheight)]
+		# landschaftsgaertnerei
+		# unten flach
+		clusters.extend([[x,self.height-1,0] 
+			for x in range(self.width)[::4]])
+		# oben schoen berge
+		clusters.extend([[x,0,maxheight] 
+			for x in range(self.width)[::4]])
 		print 'generate heightmap'
 		# assign elevation init values with clustering algorithm
 		for y in range(self.height):
@@ -199,14 +206,18 @@ class Map(object):
 				t = self.tile(x,y)
 				clsts = [((c[0]-x)**2+(c[1]-y)**2, c[2]) for c in clusters]
 				nearest=sorted(clsts, key=lambda c:c[0])[0]
-				if nearest[1] > maxheight/2 or nearest[1] < -maxheight/3:
-					t.elevation=nearest[1]+rndf()**2*10
+				if nearest[1] > maxheight/2:
+					t.elevation = nearest[1]+rndf()**2*10
+				elif nearest[1] < 0:
+					t.elevation = nearest[1]-rndf()**2*6
 				else:
-					t.elevation=t.elevation/1.2
+					t.elevation = t.elevation/1.1
 		# smooth heightmap by calculating means of each
 		# tile's neighbours elevation values
 		iterations=2
 		for i in range(iterations):
+			for x in range(self.width):
+				self.tile(x,self.height-1).elevation=0
 			topo = []
 			for y in range(self.height):
 				print '\r', '#'*(30*(y+i*self.height)/self.height/iterations),
@@ -216,11 +227,11 @@ class Map(object):
 					topo[y].append(
 						sum([nn.elevation for nn in
 						n.neighbours.values()+[n]])
-						/ (len(n.neighbours)+1.))
+						/ (len(n.neighbours)+(1.+y/self.height)))
 			# assign smoothened heightmap values to tile instances
 			for y in range(self.height):
 				for x in range(self.width):
-					self.tile(x, y).set_elevation(topo[y][x])
+					self.tile(x, y).set_elevation(topo[y][x]+2)
 
 
 	# takes a point identified by a pair of float values
@@ -294,6 +305,10 @@ class Map(object):
 										(wx+1)*txmx/16,gx*txmy/16,
 										(wx+1)*txmx/16,(gx+1)*txmy/16,
 										wx*txmx/16,(gx+1)*txmy/16)
+						coor = (wx*txmx/16,gx*txmy/16,
+										(wx+1)*txmx/16,gx*txmy/16,
+										(wx+1)*txmx/16,(gx+1)*txmy/16,
+										wx*txmx/16,(gx+1)*txmy/16)
 						self.batch.add_indexed(4, pyglet.gl.GL_TRIANGLES, None,
 							[0,1,2,0,2,3],
 							('v2i', tile.get_bounds()),
@@ -305,7 +320,7 @@ class Map(object):
 
 def load_tex():
 	#tex = media.world_tex('ground.png')
-	t = pyglet.image.load('media/world/ground_tex.png')
+	t = pyglet.image.load('media/world/ground.png')
 	tex = media.atlas.add(t)
 	if not tex:
 		return
@@ -317,8 +332,10 @@ def load_tex():
 	#glActiveTexture?
 	glEnable(tex.target)
 	glBindTexture(tex.target, tex.id)
-	glTexParameteri(tex.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-	glTexParameteri(tex.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+	glTexParameteri(tex.target, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+	glTexParameteri(tex.target, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+	glTexParameteri(tex.target, GL_TEXTURE_WRAP_S, GL_CLAMP)
+	glTexParameteri(tex.target, GL_TEXTURE_WRAP_T, GL_CLAMP)
 	print tex.width, tex.height
 	#glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width, tex.width,
 		 #0, GL_RGBA, GL_UNSIGNED_BYTE, data)
