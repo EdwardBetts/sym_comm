@@ -104,12 +104,12 @@ class Tile(object):
 		n = self.neighbours
 		x = self.pos[0]
 		self.bounds=[x, self.pos[1]]
-		for nx,dir in [(x+20,'e'), (x+20,'se'), (x,'s')]:
+		for nx,dir in [(x+21,'e'), (x+21,'se'), (x,'s')]:
 			if dir in n:
 				self.bounds+=[nx, n[dir].pos[1]]
 			else:
 				# TODO: nee!
-				self.bounds+=[nx, self.pos[1]+20*int('s' in dir)]
+				self.bounds+=[nx, self.pos[1]+21*int('s' in dir)]
 
 
 	def get_bounds(self):
@@ -190,7 +190,7 @@ class Map(object):
 		clusters=[]
 		for i in range(min(self.width*self.height/100,200)):
 			clusters+=[(rnd(0,self.width-1), rnd(0,self.height-1),
-				rndf()**2*maxheight)]
+				(1.1*rndf()**2-.1)*maxheight)]
 		print 'generate heightmap'
 		# assign elevation init values with clustering algorithm
 		for y in range(self.height):
@@ -199,10 +199,10 @@ class Map(object):
 				t = self.tile(x,y)
 				clsts = [((c[0]-x)**2+(c[1]-y)**2, c[2]) for c in clusters]
 				nearest=sorted(clsts, key=lambda c:c[0])[0]
-				if nearest[1] > maxheight/2:
+				if nearest[1] > maxheight/2 or nearest[1] < -maxheight/3:
 					t.elevation=nearest[1]+rndf()**2*10
 				else:
-					t.elevation=0
+					t.elevation=t.elevation/1.2
 		# smooth heightmap by calculating means of each
 		# tile's neighbours elevation values
 		iterations=2
@@ -283,7 +283,7 @@ class Map(object):
 								val+=int(nn.elevation-tile.elevation)
 						cols=(max(0,min(255,val)),)*12
 						# 
-						cns = [(n.elevation>20+3*rndf(),n.elevation<.5) 
+						cns = [(n.elevation>20+3*rndf(),n.elevation<0) 
 							for n in [tile]+[tile.neighbours[d]
 										for d in ['e', 'ne', 'n']
 										if d in tile.neighbours]]
