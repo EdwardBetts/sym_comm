@@ -10,6 +10,8 @@ def init_heightmap(surface, maxheight):
 	for water to filling them.
 	Elevation levels will be between (-maxheight/10, maxheight) or 
 	beneath	or below."""
+	print 'generate heightfield for map {}x{} with max level {}'.format(
+		surface.width, surface.height, maxheight)
 	# create elevation seed points
 	clusters=[]
 	for i in range(min(surface.width*surface.height/100,200)):
@@ -30,9 +32,9 @@ def init_heightmap(surface, maxheight):
 			t = surface.tile(x,y)
 			clsts = [((c[0]-x)**2+(c[1]-y)**2, c[2]) for c in clusters]
 			nearest=sorted(clsts, key=lambda c:c[0])[0]
-			if nearest[1] > maxheight/2 and nearest[1] < maxheight/5:
+			if nearest[1] > maxheight/2:
 				t.elevation = nearest[1]+rndf()**2*10
-			elif nearest[1] < 0:
+			elif nearest[1] < nearest[1] < maxheight/5:
 				t.elevation = nearest[1]-rndf()**2*6
 			else:
 				t.elevation = t.elevation/1.1
