@@ -12,7 +12,7 @@ width, height = game.mapsize
 maxelevation = game.mapelevation
 
 surface = tilemap.new(width, height, maxelevation)
-#tilemap.generator.rain(surface, 100)
+tilemap.generator.rain(surface, 100)
 
 # A* path finding initiator
 def find_path(orig, dest):
