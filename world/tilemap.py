@@ -70,6 +70,16 @@ class Tile(object):
 
 
 
+	def set_elevation(self, elevation):
+		"""sets the elevation value for this point. also, updates
+		2d coordinates of reference center point"""
+		self.elevation = elevation
+		x = self.x*20
+		y = (topo.height-self.y)*20
+		y += int(elevation)
+		self.pos = (x,y)
+
+
 	# sets up links to neighbour nodes.
 	def assign_neighbours(self):
 		"""identifies the adjacent map tiles of this tiles and
@@ -85,14 +95,6 @@ class Tile(object):
 				n[key] = neighbour
 
 
-	def set_elevation(self, elevation):
-		"""sets the elevation value for this point. also, updates
-		2d coordinates of reference center point"""
-		self.elevation = elevation
-		x = self.x*20
-		y = (topo.height-self.y)*20
-		y += int(elevation)
-		self.pos = (x,y)
 
 
 	# creates an array of bounding coordinates for this
@@ -101,15 +103,20 @@ class Tile(object):
 	def assign_bounds(self):
 		"""assigns the coordinates of the polygon representing this
 		map tile, taking adjacent tiles into account"""
-		n = self.neighbours
+		nn = self.neighbours
 		x = self.pos[0]
 		self.bounds=[x, self.pos[1]]
-		for nx,dir in [(x+20,'e'), (x+20,'se'), (x,'s')]:
-			if dir in n:
-				self.bounds+=[nx, n[dir].pos[1]]
+		for nx,d in [(x+20,'e'), (x+20,'se'), (x,'s')]:
+			n = nn.get(d)
+			if n:
+				self.bounds+=[nx, n.pos[1]]
 			else:
-				# TODO: nee!
-				self.bounds+=[nx, self.pos[1]+20*int('s' in dir)]
+				if d == 'se' and 's' in nn:
+					self.bounds+=[nx, nn.get('s').pos[1]]
+				elif 'e' in nn and not d == 's':
+					self.bounds+=[nx, nn.get('e').pos[1]-20]
+				else:
+					self.bounds+=[nx, self.pos[1]-20*int('s' in d)]
 
 
 	def get_bounds(self):
@@ -293,11 +300,15 @@ class Map(object):
 							if nn:
 								val+=int(nn.elevation-tile.elevation)
 						cols=(max(0,min(255,val)),)*12
-						# 
-						cns = [(n.elevation>20+3*rndf(),n.elevation<0) 
-							for n in [tile]+[tile.neighbours[d]
-										for d in ['e', 'ne', 'n']
-										if d in tile.neighbours]]
+						# schoen auch die ecken!
+						elv = [tile.elevation]
+						for d in ['e', 'ne', 'n']:
+							if d in tile.neighbours:
+								elv.append(tile.neighbours.get(d).elevation)
+							else:
+								elv.append(0)
+						cns = [(n>(20+3*rndf()),n<0) 
+							for n in elv]
 						# gras, wasser tex ids
 						gx = sum([int(v[0])*2**i for i,v in enumerate(cns)])
 						wx = sum([int(v[1])*2**i for i,v in enumerate(cns)])
@@ -334,8 +345,8 @@ def load_tex():
 	glBindTexture(tex.target, tex.id)
 	glTexParameteri(tex.target, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 	glTexParameteri(tex.target, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-	glTexParameteri(tex.target, GL_TEXTURE_WRAP_S, GL_CLAMP)
-	glTexParameteri(tex.target, GL_TEXTURE_WRAP_T, GL_CLAMP)
+	#glTexParameteri(tex.target, GL_TEXTURE_WRAP_S, GL_CLAMP)
+	#glTexParameteri(tex.target, GL_TEXTURE_WRAP_T, GL_CLAMP)
 	print tex.width, tex.height
 	#glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width, tex.width,
 		 #0, GL_RGBA, GL_UNSIGNED_BYTE, data)
