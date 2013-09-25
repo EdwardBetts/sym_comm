@@ -94,9 +94,9 @@ class Tile(object):
 			self._water = max(0, self._water - diff)
 		self.elevation = level
 		x = self.x*20
-		y = (self.map.height-self.y)*20
-		y += int(elevation)
-		self.coord = (x,y)	
+		y = (topo.height-self.y)*20
+		y += int(level)
+		self.pos = (x,y)	
 
 	@property
 	def vegetation(self):

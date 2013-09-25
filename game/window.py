@@ -65,10 +65,11 @@ class Window(pyglet.window.Window):
 	def on_mouse_scroll(self,x, y, scroll_x, scroll_y):
 		self.viewport.update_zoom((x,y), scroll_y)
 		# viewport updates itself
+
 	
 	def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
 		if buttons & mouse.LEFT:
-			self.viewport.move(-dx,-dy)
+			self.viewport.move(dx,dy)
 			# updates itself
 
 
