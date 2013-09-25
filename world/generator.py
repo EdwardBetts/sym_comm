@@ -55,7 +55,7 @@ def init_heightmap(surface, maxheight):
 		# assign smoothened heightmap values to tile instances
 		for y in range(surface.height):
 			for x in range(surface.width):
-				surface.tile(x, y).elevation = topo[y][x]+2.
+				surface.tile(x, y).level = topo[y][x]+2.
 
 
 
