@@ -57,32 +57,68 @@ class Tile(object):
 		self.type = 0
 
 		# vegetation level of this tile
-		# TODO: implement
-		self.vegetation = 0
+		self._veget = 0
+
+		# water level at this node. rendered tile elevation minus
+		# water level should equal tile's original elevation value
+		self._water = 0
 
 		# indicator for how good one can walk on this tile
 		# 1: minimum, the higher the better
 		# TODO: heuristic/improve this!
-		self.walkability = 1
+		self._walkbl = 1
 
 		# the resource this tile supplies
 		self.resource = None
 
 
-
-	def set_elevation(self, elevation):
-		"""sets the elevation value for this point. also, updates
+	@property
+	def level(self):
+	    return self.elevation
+	@level.setter
+	def level(self, level):
+		"""
+		sets the elevation value for this point. also, updates
 		2d coordinates of reference center point"""
-		self.elevation = elevation
+		if self.waterlevel > 0:
+			diff = level - self.elevation
+			self._water = max(0, self._water - diff)
+		self.elevation = level
 		x = self.x*20
 		y = (topo.height-self.y)*20
 		y += int(elevation)
-		self.pos = (x,y)
+		self.pos = (x,y)	
+
+	@property
+	def vegetation(self):
+	    return self._veget
+	@vegetation.setter
+	def vegetation(self, level):
+	    self._veget = level
+	    self._walkbl = 5./(5+self._veget) / min(self._water/10,5.)
+
+	@property
+	def waterlevel(self):
+	    return self._water
+	@waterlevel.setter
+	def waterlevel(self, level):
+	    self.elevation = self.elevation-self._water
+	    self._water = level
+	    self.elevation = self.elevation+self._water
+	    self._walkbl = 5./(5+self._veget) / min(self._water/10,5.)
+
+	@property
+	def walkability(self):
+	    return self._walkbl
+	@walkability.setter
+	def walkability(self, value):
+	    self._walkbl = min(value, self._walkbl)
 
 
 	# sets up links to neighbour nodes.
 	def assign_neighbours(self):
-		"""identifies the adjacent map tiles of this tiles and
+		"""
+		identifies the adjacent map tiles of this tiles and
 		stores them in the self.neighbours dictionary with
 		the respective relative cardinal direction as the key,
 		like 'n', 'sw', 'nw' etc."""
@@ -101,7 +137,8 @@ class Tile(object):
 	# tile's polygonal representation
 	# [tile itself, east neighbour, southeast, south]
 	def assign_bounds(self):
-		"""assigns the coordinates of the polygon representing this
+		"""
+		assigns the coordinates of the polygon representing this
 		map tile, taking adjacent tiles into account"""
 		nn = self.neighbours
 		x = self.pos[0]
@@ -120,7 +157,8 @@ class Tile(object):
 
 
 	def get_bounds(self):
-		"""returns an array of a four-point polygon representing
+		"""
+		returns an array of a four-point polygon representing
 		this map tile"""
 		if not self.bounds:
 			# start top-left, go clockwise
@@ -129,12 +167,18 @@ class Tile(object):
 
 
 	def accessability(self, tile):
-		"""returns a value indicating how hard it is to walk from
-		this tile to a (most likely) adjacent tile """
-		#TODO: 
-		g = [0,1,1.5][int(self.x!=tile.x)+int(self.y!=tile.y)]
-		g *= 1+2/(self.walkability+tile.walkability)
-		g += tile.elevation-self.elevation
+		"""
+		returns a value indicating how hard it is to walk from
+		this tile to a (most likely) adjacent tile. The higher the value,
+		the harder is it to walk this direction and the more likely are
+		inhabitants to avoid it when walking around. """
+		# distance
+		g = [0,1,1.5][int(self.x!=tile.x) + int(self.y!=tile.y)]
+		# tiles very own walkability parameters for special purposes
+		g *= 1 + 2/(self._walkbl + tile._walkbl) # (default to 1)
+		# slope
+		g += tile.elevation - self.elevation
+
 		return g
 
 
@@ -238,7 +282,7 @@ class Map(object):
 			# assign smoothened heightmap values to tile instances
 			for y in range(self.height):
 				for x in range(self.width):
-					self.tile(x, y).set_elevation(topo[y][x]+2)
+					self.tile(x, y).elevation = topo[y][x]+2.
 
 
 	# takes a point identified by a pair of float values
@@ -258,9 +302,11 @@ class Map(object):
 			return (rx,ry)
 		return None
 
+
 	# REPR
 	def __repr__(self):
-		"""returns a string representation of the world's heighmap"""
+		"""
+		returns a string representation of the world's heighmap"""
 		out=[]
 		for y in range(self.height):
 			row = []
@@ -272,13 +318,15 @@ class Map(object):
 
 
 	def __len__(self):
-		"""returns the size of this map, which is its width times
+		"""
+		returns the size of this map, which is its width times
 		its height"""
 		return self.width*self.height
 
 
 	def image(self):
-		"""dummy method that returns the graphical representation
+		"""
+		dummy method that returns the graphical representation
 		of a random map tile as a vertex_list, just for debugging"""
 		# http://packages.python.org/pyglet/api/pyglet.image.AbstractImage-class.html#blit_into
 		if not self.tex:

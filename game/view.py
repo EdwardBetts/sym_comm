@@ -40,8 +40,12 @@ class Camera:
 		self.update()
 		
 	def move(self, dx, dy):
-		self.x -= dx*self.zoom
-		self.y -= dy*self.zoom
+		self.x = dx*self.zoom
+		self.y = dy*self.zoom
+		self.update()
+
+	def goto(self, pos):
+		self.x, self.y = pos
 		self.update()
 
 cam=None

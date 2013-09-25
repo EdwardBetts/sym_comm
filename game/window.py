@@ -10,6 +10,13 @@ from world import inhabitants
 from world.inhabitants import jaja
 
 
+# only pass inhabitants!
+def map_pos(i):
+	if isinstance(i, inhabitants.Inhabitant):
+		return world.get().ground_position(i.x, i.y)
+
+
+# game window
 class Window(pyglet.window.Window):
 
 	def __init__(self):
@@ -38,7 +45,9 @@ class Window(pyglet.window.Window):
 		self.worldimage = world.get().image()
 		self.viewport = view.create(self, self.width/2,self.height/2)
 
-		world.inhabitants.jaja.create(6,5)
+		j = world.inhabitants.jaja.create(6,5)
+		self.viewport.goto(map_pos(j))
+		self.viewport.zoom = .6
 		world.inhabitants.jaja.create(10,6)
 		world.inhabitants.jaja.create(4,8)
 
@@ -58,7 +67,7 @@ class Window(pyglet.window.Window):
 	
 	def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
 		if buttons & mouse.LEFT:
-			self.viewport.move(dx,dy)
+			self.viewport.move(-dx,-dy)
 			# updates itself
 
 
