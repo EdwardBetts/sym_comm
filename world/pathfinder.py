@@ -89,11 +89,14 @@ class AStar:
 	@staticmethod
 	def perform(self):
 		for search in AStar.running:
-			if len(search.open)>0:
+			i = 5
+			while search.runs() and i < 5:
 				search.search()
+
 	
-	def isRunning(self):
+	def runs(self):
 		return len(self.open)>0 and self.path==None
+
 	
 	def result(self):
 		# TODO: save cost in path itself?
@@ -102,6 +105,7 @@ class AStar:
 		#if len(self.open)>0:
 			#self.search()
 		return None
+
 	
 	def draw(self):
 		if self.path:
@@ -189,9 +193,18 @@ class AStar:
 	
 
 def find_path(startnode, endnode):
-	"""Returns a fresh instance of the AStar class, which
+	"""
+	Returns a fresh instance of the AStar class, which
 	continues to search for the best path between the given
 	nodes on every call of result()"""
 	return AStar(startnode, endnode)
 
-pyglet.clock.schedule_interval(AStar.perform, .1)
+
+def astar(startnode, endnode):
+	"""
+	Does the same as find_path does, but its name is shorter!"""
+	return AStar(startnode, endnode)
+
+
+
+pyglet.clock.schedule_interval(AStar.perform, .5)

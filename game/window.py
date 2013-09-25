@@ -2,6 +2,7 @@ import pyglet
 from pyglet.gl import *
 from pyglet.window import mouse
 from random import randint as rnd
+
 import media
 import graphics
 import world
@@ -13,7 +14,7 @@ from world.inhabitants import jaja
 # only pass inhabitants!
 def map_pos(i):
 	if isinstance(i, inhabitants.Inhabitant):
-		return world.get().ground_position(i.x, i.y)
+		return world.surface.ground_position(i.x, i.y)
 
 
 # game window
@@ -42,14 +43,14 @@ class Window(pyglet.window.Window):
 		#impt = pyglet.image.SolidColorImagePattern((100,180,90,200))
 		#self.bg = pyglet.image.create(800,600, impt)
 
-		self.worldimage = world.get().image()
+		self.worldimage = world.surface.image()
 		self.viewport = view.create(self, self.width/2,self.height/2)
 
-		j = world.inhabitants.jaja.create(6,5)
+		j = jaja.create(6,5)
 		self.viewport.goto(map_pos(j))
 		self.viewport.zoom = .6
-		world.inhabitants.jaja.create(10,6)
-		world.inhabitants.jaja.create(4,8)
+		jaja.create(10,6)
+		jaja.create(4,8)
 
 		#self.pathfinder = world.pathfinder.find_path(
 			#world.get().tile(5,25),
@@ -77,7 +78,7 @@ class Window(pyglet.window.Window):
 		#self.label.draw()
 
 		glEnable(GL_TEXTURE_2D)
-		glBindTexture(world.tilemap.tex.target,world.tilemap.tex.id)
+		glBindTexture(world.surface.tex.target,world.surface.tex.id)
 		self.worldimage.draw() # map
 		#glDisable(GL_TEXTURE_2D)
 

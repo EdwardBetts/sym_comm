@@ -2,8 +2,10 @@ import pyglet.graphics as gfx
 from pyglet.gl import *
 from random import randint as rnd
 from random import random as rndf
+
 import game
 import media
+from world import generator
 # -*- coding: utf-8 -*-
 
 __doc__="restructuredtext"
@@ -26,16 +28,23 @@ class Tile(object):
 	Class for single map tile
 	"""
 
+	@staticmethod
+	def new(topo):
+		"""
+		Creates, registers and returns a brand new Tile node instance"""
+		return Tile(topo)
+		
+
 	counter=0
 
-	def __init__(self):
+	def __init__(self, tilemap):
 		super(Tile, self).__init__()
-
 		ID = Tile.counter
 		Tile.counter += 1
 
-		self.x = ID % topo.width
-		self.y = ID // topo.width
+		self.map = tilemap
+		self.x = ID % self.map.width
+		self.y = ID // self.map.width
 		self.ID = ID
 		# topological elevation of this map tile; heightmap
 		# feature
@@ -43,7 +52,7 @@ class Tile(object):
 
 		# upper-left corner of this tile for to estimate
 		# where it is to find on the graphical output
-		self.pos=(self.x*20, self.y*20)
+		self.coord=(self.x*20, self.y*20)
 
 		# the tiles directly adjacent to this tile
 		#TODO: store walking cost between nodes in here?
@@ -54,7 +63,7 @@ class Tile(object):
 		self.bounds = None
 
 		# 0 = normal ground, 1 = water, 2 = dirt road
-		self.type = 0
+		#self.type = 0
 
 		# vegetation level of this tile
 		self._veget = 0
@@ -85,9 +94,9 @@ class Tile(object):
 			self._water = max(0, self._water - diff)
 		self.elevation = level
 		x = self.x*20
-		y = (topo.height-self.y)*20
+		y = (self.map.height-self.y)*20
 		y += int(elevation)
-		self.pos = (x,y)	
+		self.coord = (x,y)	
 
 	@property
 	def vegetation(self):
@@ -97,7 +106,7 @@ class Tile(object):
 	    self._veget = level
 	    self._walkbl = 5./(5+self._veget) / min(self._water/10,5.)
 
-	@property
+	@property*
 	def waterlevel(self):
 	    return self._water
 	@waterlevel.setter
@@ -124,13 +133,15 @@ class Tile(object):
 		like 'n', 'sw', 'nw' etc."""
 		n = self.neighbours
 		for key,rx,ry in nrel:
-			#neighbour = topo.tile((self.x+rx) % topo.width,
-							#(self.y+ry)) # % topo.height)
-			neighbour = topo.tile(self.x+rx, self.y+ry)
+			#neighbour = self.map.tile((self.x+rx) % self.map.width,
+							#(self.y+ry)) # % self.map.height)
+			neighbour = self.map.tile(self.x+rx, self.y+ry)
 			if neighbour:
 				n[key] = neighbour
 
-
+	@property
+	def pos(self):
+		return (self.x, self.y)
 
 
 	# creates an array of bounding coordinates for this
@@ -141,19 +152,19 @@ class Tile(object):
 		assigns the coordinates of the polygon representing this
 		map tile, taking adjacent tiles into account"""
 		nn = self.neighbours
-		x = self.pos[0]
-		self.bounds=[x, self.pos[1]]
+		x = self.coord[0]
+		self.bounds=[x, self.coord[1]]
 		for nx,d in [(x+20,'e'), (x+20,'se'), (x,'s')]:
 			n = nn.get(d)
 			if n:
-				self.bounds+=[nx, n.pos[1]]
+				self.bounds+=[nx, n.coord[1]]
 			else:
 				if d == 'se' and 's' in nn:
-					self.bounds+=[nx, nn.get('s').pos[1]]
+					self.bounds+=[nx, nn.get('s').coord[1]]
 				elif 'e' in nn and not d == 's':
-					self.bounds+=[nx, nn.get('e').pos[1]-20]
+					self.bounds+=[nx, nn.get('e').coord[1]-20]
 				else:
-					self.bounds+=[nx, self.pos[1]-20*int('s' in d)]
+					self.bounds+=[nx, self.coord[1]-20*int('s' in d)]
 
 
 	def get_bounds(self):
@@ -193,9 +204,16 @@ class Tile(object):
 
 
 
-
-
-##### Tile Map implementation #####
+##################################################################
+##################################################################
+##################################################################
+#######################                         ##################
+####################### Tile Map implementation ##################
+#######################                         ##################
+##################################################################
+##################################################################
+##################################################################
+##################################################################
 
 
 class Map(object):
@@ -214,17 +232,19 @@ class Map(object):
 		self.tex = None
 
 
-	def init_map(self, maxheight):
+	# create content
+	def init(self, maxheight):
 		"""creates links between adjacent tiles, generates heightmap
 		and computes coordinates for graphical representation of
 		contained tiles"""
 		while Tile.counter < self.width*self.height:
-			n = Tile()
+			n = Tile(self)
 			self.tiles[(n.x,n.y)] = n
 		print "   map tiles instantiated: %d" % Tile.counter
 		for pos,tile in self.tiles.items():
 			tile.assign_neighbours()
-		self.init_heightmap(maxheight)
+		generator.init_heightmap(self, maxheight)
+		# compute coords for polygon representation
 		for pos,tile in self.tiles.items():
 			tile.assign_bounds()
 
@@ -235,54 +255,6 @@ class Map(object):
 		return self.tiles.get((x,y), None)
 
 
-	# set up heightmap
-	def init_heightmap(self, maxheight):
-		# create elevation seed points
-		clusters=[]
-		for i in range(min(self.width*self.height/100,200)):
-			clusters+=[(rnd(0,self.width-1), rnd(0,self.height-1),
-				(1.1*rndf()**2-.1)*maxheight)]
-		# landschaftsgaertnerei
-		# unten flach
-		clusters.extend([[x,self.height-1,0] 
-			for x in range(self.width)[::4]])
-		# oben schoen berge
-		clusters.extend([[x,0,maxheight] 
-			for x in range(self.width)[::4]])
-		print 'generate heightmap'
-		# assign elevation init values with clustering algorithm
-		for y in range(self.height):
-			print '\r','.'*(30*y/self.height),
-			for x in range(self.width):
-				t = self.tile(x,y)
-				clsts = [((c[0]-x)**2+(c[1]-y)**2, c[2]) for c in clusters]
-				nearest=sorted(clsts, key=lambda c:c[0])[0]
-				if nearest[1] > maxheight/2:
-					t.elevation = nearest[1]+rndf()**2*10
-				elif nearest[1] < 0:
-					t.elevation = nearest[1]-rndf()**2*6
-				else:
-					t.elevation = t.elevation/1.1
-		# smooth heightmap by calculating means of each
-		# tile's neighbours elevation values
-		iterations=2
-		for i in range(iterations):
-			for x in range(self.width):
-				self.tile(x,self.height-1).elevation=0
-			topo = []
-			for y in range(self.height):
-				print '\r', '#'*(30*(y+i*self.height)/self.height/iterations),
-				topo.append([])
-				for x in range(self.width):
-					n = self.tile(x,y)
-					topo[y].append(
-						sum([nn.elevation for nn in
-						n.neighbours.values()+[n]])
-						/ (len(n.neighbours)+(1.+y/self.height)))
-			# assign smoothened heightmap values to tile instances
-			for y in range(self.height):
-				for x in range(self.width):
-					self.tile(x, y).elevation = topo[y][x]+2.
 
 
 	# takes a point identified by a pair of float values
@@ -295,7 +267,8 @@ class Map(object):
 		if all(map(lambda x:x, nodes)):
 			vx,vy = (x-ix, y-iy)
 			param = [(0,1,0), (0,1,1), (2,3,0), (2,3,1)]
-			vcut = [nodes[p1].pos[ax]+(nodes[p2].pos[ax]-nodes[p1].pos[ax])*vx
+			vcut = [nodes[p1].coord[ax]+
+				(nodes[p2].coord[ax]-nodes[p1].coord[ax])*vx
 				for p1, p2, ax in param]
 			rx = vcut[0]+(vcut[2]-vcut[0])*vy
 			ry = vcut[1]+(vcut[3]-vcut[1])*vy
@@ -349,14 +322,16 @@ class Map(object):
 								val+=int(nn.elevation-tile.elevation)
 						cols=(max(0,min(255,val)),)*12
 						# schoen auch die ecken!
-						elv = [tile.elevation]
+						nn = [(tile.waterlevel, tile.elevation)]
 						for d in ['e', 'ne', 'n']:
 							if d in tile.neighbours:
-								elv.append(tile.neighbours.get(d).elevation)
+								nn.append((tile.neighbours.get(d).waterlevel,
+									tile.neighbours.get(d).elevation))
 							else:
-								elv.append(0)
-						cns = [(n>(20+3*rndf()),n<0) 
-							for n in elv]
+								nn.append((None, 0))
+						# elevation?
+						cns = [(e>(20+3*rndf()), w>0)
+							for (w,e) in nn]
 						# gras, wasser tex ids
 						gx = sum([int(v[0])*2**i for i,v in enumerate(cns)])
 						wx = sum([int(v[1])*2**i for i,v in enumerate(cns)])
@@ -404,24 +379,14 @@ def load_tex():
 	return tex
 
 
-# APi stuff
-topo=None
 
-# factory method
-def create(width, height, maxelevation):
-	global topo
-	if not topo:
-		topo=Map(width, height)
-		topo.init_map(maxelevation)
-	return topo
+# create instance
+def new(width, height, maxlevel):
+	"""
+	Creates a new Map instance with a basic heightmap and returns it."""
+	surface = Map(width, height)
+	surface.init(maxlevel)
+	return surface
 
-def get():
-	return topo
 
-# A* path finding initiator
-def find_path(orig, dest):
-	x,y=orig
-	orig = topo.tile(x,y)
-	x,y=dest
-	dest = topo.tile(x,y)
-	return pathfinder.AStar(orig, dest)
+

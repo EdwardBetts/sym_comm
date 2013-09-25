@@ -2,8 +2,8 @@ import math
 from random import randint as rnd
 from pyglet.graphics import Batch
 from pyglet.sprite import Sprite
+
 import world
-from world.pathfinder import find_path
 
 #import jaja
 
@@ -15,8 +15,9 @@ __doc__="restructuredtext"
 batch = Batch()
 registry = []
 
-world = world.get()
-
+# tilemap
+topo = world.surface
+find_path = world.find_path
 
 class Inhabitant(object):
 	def __init__(self, img, x, y):
@@ -31,7 +32,7 @@ class Inhabitant(object):
 		self.update()
 	
 	def update(self):
-		grpos = world.ground_position(self.x, self.y)
+		grpos = topo.ground_position(self.x, self.y)
 		if grpos:
 			x,y=grpos
 			self.sprite.set_position(x-10,y)
@@ -67,8 +68,8 @@ def update():
 				being.path = [n for n in being.path] #TODO: really neccessary?
 		else:
 			if rnd(0,100)<50:
-				tile = world.tile(int(round(being.x)), int(round(being.y)))
-				dest = world.tile(rnd(0,world.width-1), rnd(0,world.height-1))
+				tile = topo.tile(int(round(being.x)), int(round(being.y)))
+				dest = topo.tile(rnd(0,topo.width-1), rnd(0,topo.height-1))
 				if tile.distance(dest) < 8:
 					being.pathfinder = find_path(tile, dest)
 				#for i in range(10):
