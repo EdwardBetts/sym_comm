@@ -92,7 +92,7 @@ def rain(surface, amount, springs=None):
 	speed=10.
 	count=0
 	erosion=0.
-	while max(wettrans)> .1 and count<3000:
+	while max(wettrans)> .1 and count<5000:
 		count += 1
 		#fldd = {k:v for k,v in drops.items()}
 		fldd = {}
@@ -124,6 +124,9 @@ def rain(surface, amount, springs=None):
 						n.elevation -= share/10
 						t.elevation -= share/20
 						erosion += share*3/20
+					# fertilize
+					if share < .2:
+						n._veget = min(n._veget+.01, 100.)
 		# update water map
 		for k,v in fldd.items():
 			level = drops.get(k,0)+v
