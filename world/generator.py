@@ -17,7 +17,7 @@ def init_heightmap(surface, maxheight):
 	for i in range(min(surface.width*surface.height/100,200)):
 		y = rnd(surface.height)
 		clusters+=[(rnd(surface.width), y,
-			(2.*(1-y/surface.height)*(rndf()+.1)**2-.1)*maxheight)]
+			(rndf()-(y/surface.height)) * maxheight)]
 	# landschaftsgaertnerei
 	# unten flach
 	clusters.extend([[x,surface.height-1,0] 
@@ -35,8 +35,8 @@ def init_heightmap(surface, maxheight):
 			nearest=sorted(clsts, key=lambda c:c[0])[0]
 			if nearest[1] > maxheight*2/3:
 				t.elevation = nearest[1]+rndf()**2*10
-			elif nearest[1] < maxheight/5:
-				t.elevation = nearest[1]-rndf()**2*6
+			elif nearest[1] < 0:
+				t.elevation = max(nearest[1]**2, -maxheight/5)
 			else:
 				t.elevation = t.elevation/1.1
 			t.elevation = t.elevation + maxheight/2.*(-.5+rndf())
@@ -96,29 +96,32 @@ def rain(surface, amount, springs=None):
 		# quellen
 		if springs:
 			for s in springs:
-				drops[s] = drops.get(s,0) + 1./(1.+count/20)
+				drops[s] = drops.get(s,0) + 3./(1.+count/10)
 		# flooding
 		for t,w in drops.items():
-			for n in sorted(t.neighbours.values(), 
-				key=lambda n:drops.get(n,0)):
-				# see how much this neighbour can possibly take
-				nw = drops.get(n,0) 
-				gap = min(w + t.elevation - (nw + n.elevation), w)
-				# if neighbour has potential, transfer 1/3 of it
-				if gap > 0:
-					share = gap/4
-					fldd[n] = fldd.get(n,0)+share
-					# erode!
-					if n.elevation > t.elevation-10:
-						n.elevation -= min(share,.05)
-					fldd[t] = fldd.get(t,0)-share
-					w -= share
-					wettest = max(share, wettest)
+			if w > .1:
+				for n in sorted(t.neighbours.values(), 
+					key=lambda n:drops.get(n,0)):
+					# see how much this neighbour can possibly take
+					nw = drops.get(n,0) 
+					gap = min(w + t.elevation - (nw + n.elevation), w)
+					# if neighbour has potential, transfer 1/3 of it
+					if gap > 0:
+						share = gap/4
+						fldd[n] = fldd.get(n,0)+share
+						# erode!
+						if n.elevation > t.elevation-10:
+							n.elevation -= min(share,.05)
+						fldd[t] = fldd.get(t,0)-share
+						w -= share
+						wettest = max(share, wettest)
+			else:
+				fldd[t] = fldd.get(t,0)
 		# update water map
 		for k,v in fldd.items():
 			level = drops.get(k,0)+v
 			drops[k] = level
-			if level<.02 and abs(v)<.01:
+			if level<.05 and abs(v)<.05:
 				del drops[k]
 		wettrans = [wettest] + wettrans[:5]
 		#print 'Wettest transfer had {:.2f} units water.'.format(
