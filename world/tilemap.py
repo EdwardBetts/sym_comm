@@ -94,7 +94,8 @@ class Tile(object):
 			#self._water = max(0, self._water - diff)
 		self.elevation = level
 		y = (self.map.height-self.y)*20
-		y += int(self.elevation+self._water) - 5*int(self._water>0)
+		#y += int(self.elevation+self._water) - 5*int(self._water>0)
+		y += int(self.elevation)
 		self.coord = (self.coord[0],y)	
 
 	@property
@@ -115,7 +116,8 @@ class Tile(object):
 			#self.elevation += self._water
 			self._walkbl = 5./(5+self._veget) / min(1.+self._water/10,5.)
 			y = (self.map.height-self.y)*20
-			y += int(self.elevation+self._water) - 5*int(self._water>0)
+			#y += int(self.elevation+self._water) - 5*int(self._water>0)
+			y += int(self.elevation)
 			self.coord = (self.coord[0], y)
 
 	@property

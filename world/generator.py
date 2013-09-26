@@ -17,7 +17,7 @@ def init_heightmap(surface, maxheight):
 	for i in range(min(surface.width*surface.height/100,200)):
 		y = rnd(surface.height)
 		clusters+=[(rnd(surface.width), y,
-			(rndf()-(y/surface.height)) * maxheight)]
+			(rndf()-(.5*y/surface.height)) * maxheight)]
 	# landschaftsgaertnerei
 	# unten flach
 	clusters.extend([[x,surface.height-1,0] 
@@ -34,12 +34,12 @@ def init_heightmap(surface, maxheight):
 			clsts = [((c[0]-x)**2+(c[1]-y)**2, c[2]) for c in clusters]
 			nearest=sorted(clsts, key=lambda c:c[0])[0]
 			if nearest[1] > maxheight*2/3:
-				t.elevation = nearest[1]+rndf()**2*10
+				t.elevation = nearest[1]+ maxheight/5.*rndf()
 			elif nearest[1] < 0:
-				t.elevation = max(nearest[1]**2, -maxheight/5)
+				t.elevation = nearest[1]
 			else:
-				t.elevation = t.elevation/1.1
-			t.elevation = t.elevation + maxheight/2.*(-.5+rndf())
+				t.elevation = nearest[1]+ maxheight/4.*(-.5+rndf())
+			t.elevation = t.elevation + maxheight/4.*(-.5+rndf())
 	smoothen(surface,2)
 
 
@@ -68,27 +68,30 @@ def smoothen(surface, iterations):
 
 
 
+
 # let it rain!
 def rain(surface, amount, springs=None):
 	"""
 	Simulates a given amount of water falling down onto the given
 	tile map."""
-	print 'It rains: {} units of rain water!'.format(amount)
+	print 'It rains: {} units of rain water'.format(amount),
 	if springs:
-		print '{} springs.'.format(len(springs))
+		print 'and {} springs.'.format(len(springs)),
 	# water already in map
 	drops={t:t.waterlevel for t in surface.tiles.values()
 		if t.waterlevel > 0} # key: tile, value: water
 	while amount>0:
 		x,y = rnd(surface.width), rnd(surface.height)
 		t=surface.tile(x,y)
-		n = rndf()*10+1
+		n = rndf()*10+2
 		drops[t] = drops.get(t,0) + n
 		amount -= n
+	print 'Number of wet tiles at beginning is {}.'.format(len(drops))
 	# 
 	wettrans=[1]
+	speed=10.
 	count=0
-	while max(wettrans)>.05 and count<10000:
+	while max(wettrans)>.05 and count<5000:
 		count += 1
 		#fldd = {k:v for k,v in drops.items()}
 		fldd = {}
@@ -96,27 +99,26 @@ def rain(surface, amount, springs=None):
 		# quellen
 		if springs:
 			for s in springs:
-				drops[s] = drops.get(s,0) + 3./(1.+count/10)
+				drops[s] = drops.get(s,0) + 5./(1.+count/10)
 		# flooding
 		for t,w in drops.items():
-			if w > .1:
-				for n in sorted(t.neighbours.values(), 
-					key=lambda n:drops.get(n,0)):
-					# see how much this neighbour can possibly take
-					nw = drops.get(n,0) 
-					gap = min(w + t.elevation - (nw + n.elevation), w)
-					# if neighbour has potential, transfer 1/3 of it
-					if gap > 0:
-						share = gap/4
-						fldd[n] = fldd.get(n,0)+share
-						# erode!
-						if n.elevation > t.elevation-10:
-							n.elevation -= min(share,.05)
-						fldd[t] = fldd.get(t,0)-share
-						w -= share
-						wettest = max(share, wettest)
-			else:
-				fldd[t] = fldd.get(t,0)
+			for n in sorted(t.neighbours.values(), 
+				key=lambda n:drops.get(n,0)):
+				# see how much this neighbour can possibly take
+				nw = drops.get(n,0) 
+				gap = min(w + t.elevation - (nw + n.elevation), w)
+				# if neighbour has potential, transfer 1/3 of it
+				if gap > 0:
+					share = gap/3
+					fldd[n] = fldd.get(n,0)+share
+					# erode!
+					if share>.05:
+						if max([nn.elevation-n.elevation 
+							for nn in n.neighbours.values()])<10:
+								n.elevation -= min(share,.1)
+					fldd[t] = fldd.get(t,0)-share
+					w -= share
+					wettest = max(share, wettest)
 		# update water map
 		for k,v in fldd.items():
 			level = drops.get(k,0)+v
@@ -124,6 +126,10 @@ def rain(surface, amount, springs=None):
 			if level<.05 and abs(v)<.05:
 				del drops[k]
 		wettrans = [wettest] + wettrans[:5]
+		if max(wettrans)<speed/2:
+			speed /= 2
+			print 'Floating deccelerated under {:.2f}'.format(
+				max(wettrans))
 		#print 'Wettest transfer had {:.2f} units water.'.format(
 			#wettest),
 		#print 'Total amount is {:.2f}, max {:.2f}'.format(
@@ -131,5 +137,5 @@ def rain(surface, amount, springs=None):
 	# ok enough
 	for t in surface.tiles.values():
 		t.waterlevel = drops.get(t,0)
-	print '{} floodings. Last transfer: {:.2f}. Total on map: {:.2f}'.format(
-		count, wettest, surface.water())
+	print '{} floodings. Last transfer: {:.2f}. Total on map: {:.2f} on {} tiles.'.format(
+		count, wettest, surface.water(), len(drops))
