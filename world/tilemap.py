@@ -392,7 +392,7 @@ def load_tex():
 		 #0, GL_RGBA, GL_UNSIGNED_BYTE, data)
 	print tex.tex_coords
 	#glDisable(target)
-	tex.save('t.png')
+	#tex.save('t.png')
 	return tex
 
 

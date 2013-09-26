@@ -112,10 +112,10 @@ def rain(surface, amount, springs=None):
 					share = gap/3
 					fldd[n] = fldd.get(n,0)+share
 					# erode!
-					if share>.05:
+					if share>.5:
 						if max([nn.elevation-n.elevation 
 							for nn in n.neighbours.values()])<10:
-								n.elevation -= min(share,.1)
+								n.elevation -= share/10
 					fldd[t] = fldd.get(t,0)-share
 					w -= share
 					wettest = max(share, wettest)
