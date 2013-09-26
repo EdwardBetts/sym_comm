@@ -91,6 +91,7 @@ def rain(surface, amount, springs=None):
 	wettrans=[1]
 	speed=10.
 	count=0
+	erosion=0.
 	while max(wettrans)>.05 and count<5000:
 		count += 1
 		#fldd = {k:v for k,v in drops.items()}
@@ -114,8 +115,9 @@ def rain(surface, amount, springs=None):
 					# erode!
 					if share>.5:
 						if max([nn.elevation-n.elevation 
-							for nn in n.neighbours.values()])<10:
-								n.elevation -= share/10
+							for nn in n.neighbours.values()])<20:
+							n.elevation -= share/10
+							erosion += share/10
 					fldd[t] = fldd.get(t,0)-share
 					w -= share
 					wettest = max(share, wettest)
@@ -138,4 +140,5 @@ def rain(surface, amount, springs=None):
 	for t in surface.tiles.values():
 		t.waterlevel = drops.get(t,0)
 	print '{} floodings. Last transfer: {:.2f}. Total on map: {:.2f} on {} tiles.'.format(
-		count, wettest, surface.water(), len(drops))
+		count, wettest, surface.water(), len(drops)),
+	print 'Grade of erosion was {:.2f}.'.format(erosion)
