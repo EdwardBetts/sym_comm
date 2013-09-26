@@ -16,7 +16,7 @@ surface = tilemap.new(width, height, maxelevation)
 	#tilemap.generator.rain(surface, 2000)
 for i in range(7):
 	tilemap.generator.rain(surface, 40, 
-		springs=[s for s in surface.highest(120)[::20]])
+		springs=[s for s in surface.highest(120-i*10)[::20]])
 #tilemap.generator.smoothen(surface,1)
 surface.init_mesh()
 

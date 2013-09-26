@@ -119,7 +119,7 @@ def rain(surface, amount, springs=None):
 					# erode!
 					if share>.5:
 						if max([nn.elevation-n.elevation 
-							for nn in n.neighbours.values()])<30:
+							for nn in n.neighbours.values()])<15:
 							n.elevation -= share/5
 							t.elevation -= share/10
 							erosion += share*3/10
