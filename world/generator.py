@@ -100,7 +100,7 @@ def rain(surface, amount, springs=None):
 		# quellen
 		if springs:
 			for s in springs:
-				drops[s] = drops.get(s,0) + 5./(1.+count/10.)
+				drops[s] = drops.get(s,0) + 4./(1.+count/10.)
 		# flooding
 		for t,w in drops.items():
 			for n in sorted(t.neighbours.values(), 
@@ -119,10 +119,10 @@ def rain(surface, amount, springs=None):
 					# erode!
 					if share>.5:
 						if max([nn.elevation-n.elevation 
-							for nn in n.neighbours.values()])<20:
-							n.elevation -= share/10
-							t.elevation -= share/20
-							erosion += share*3/20
+							for nn in n.neighbours.values()])<30:
+							n.elevation -= share/5
+							t.elevation -= share/10
+							erosion += share*3/10
 		# update water map
 		for k,v in fldd.items():
 			level = drops.get(k,0)+v
