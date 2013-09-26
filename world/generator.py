@@ -91,7 +91,8 @@ def rain(surface, amount, springs=None):
 	wettrans=[1]
 	speed=10.
 	count=0
-	while max(wettrans)>.05 and count<5000:
+	erosion=0.
+	while max(wettrans)>.075 and count<3000:
 		count += 1
 		#fldd = {k:v for k,v in drops.items()}
 		fldd = {}
@@ -99,7 +100,7 @@ def rain(surface, amount, springs=None):
 		# quellen
 		if springs:
 			for s in springs:
-				drops[s] = drops.get(s,0) + 5./(1.+count/10)
+				drops[s] = drops.get(s,0) + (.05+4./(1.+count/10.))
 		# flooding
 		for t,w in drops.items():
 			for n in sorted(t.neighbours.values(), 
@@ -110,22 +111,25 @@ def rain(surface, amount, springs=None):
 				# if neighbour has potential, transfer 1/3 of it
 				if gap > 0:
 					share = gap/3
-					fldd[n] = fldd.get(n,0)+share
+					# nivellate water levels a bit
+					fldd[n] = fldd.get(n,0)+share # take
+					fldd[t] = fldd.get(t,0)-share # give
+					w -= share # now theres less water
+					wettest = max(share, wettest)
 					# erode!
 					if share>.5:
 						if max([nn.elevation-n.elevation 
-							for nn in n.neighbours.values()])<10:
-								n.elevation -= share/10
-					fldd[t] = fldd.get(t,0)-share
-					w -= share
-					wettest = max(share, wettest)
+							for nn in n.neighbours.values()])<17:
+							n.elevation -= share/5
+							t.elevation -= share/10
+							erosion += share*3/10
 		# update water map
 		for k,v in fldd.items():
 			level = drops.get(k,0)+v
 			drops[k] = level
 			if level<.05 and abs(v)<.05:
 				del drops[k]
-		wettrans = [wettest] + wettrans[:5]
+		wettrans = [wettest] + wettrans[:4]
 		if max(wettrans)<speed/2:
 			speed /= 2
 			print 'Floating deccelerated under {:.2f}'.format(
@@ -138,4 +142,5 @@ def rain(surface, amount, springs=None):
 	for t in surface.tiles.values():
 		t.waterlevel = drops.get(t,0)
 	print '{} floodings. Last transfer: {:.2f}. Total on map: {:.2f} on {} tiles.'.format(
-		count, wettest, surface.water(), len(drops))
+		count, wettest, surface.water(), len(drops)),
+	print 'Grade of erosion was {:.2f}.'.format(erosion)
