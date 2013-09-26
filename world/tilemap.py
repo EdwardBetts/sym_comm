@@ -69,8 +69,9 @@ class Tile(object):
 		self._veget = 0
 
 		# water level at this node. rendered tile elevation minus
-		# water level should equal tile's original elevation value
-		self._water = 0
+		# FIXME: water level should equal tile's original elevation value
+		# -10 is ground water level
+		self._water = max(0, -10-self.elevation)
 
 		# indicator for how good one can walk on this tile
 		# 1: minimum, the higher the better
@@ -112,7 +113,8 @@ class Tile(object):
 	@waterlevel.setter
 	def waterlevel(self, level):
 			#self.elevation = self.elevation-self._water
-			self._water = max(0,level)
+			# -10: ground water..
+			self._water = max(max(0,-10-self._elevation),level)
 			#self.elevation += self._water
 			self._walkbl = 5./(5+self._veget) / min(1.+self._water/10,5.)
 			y = (self.map.height-self.y)*20
