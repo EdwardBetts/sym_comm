@@ -52,7 +52,7 @@ class Tile(object):
 
 		# upper-left corner of this tile for to estimate
 		# where it is to find on the graphical output
-		self.coord=(self.x*20, self.y*20)
+		self.coord=(self.x*20, (self.map.height-self.y)*20)
 
 		# the tiles directly adjacent to this tile
 		#TODO: store walking cost between nodes in here?
@@ -89,14 +89,13 @@ class Tile(object):
 		"""
 		sets the elevation value for this point. also, updates
 		2d coordinates of reference center point"""
-		if self.waterlevel > 0:
-			diff = level - self.elevation
-			self._water = max(0, self._water - diff)
+		#if self.waterlevel > 0:
+			#diff = level - self.elevation
+			#self._water = max(0, self._water - diff)
 		self.elevation = level
-		x = self.x*20
 		y = (self.map.height-self.y)*20
-		y += int(level)
-		self.coord = (x,y)	
+		y += int(self.elevation+self._water) - 5*int(self._water>0)
+		self.coord = (self.coord[0],y)	
 
 	@property
 	def vegetation(self):
@@ -111,10 +110,13 @@ class Tile(object):
 	    return self._water
 	@waterlevel.setter
 	def waterlevel(self, level):
-	    self.elevation = self.elevation-self._water
-	    self._water = max(0,level)
-	    self.elevation += self._water
-	    self._walkbl = 5./(5+self._veget) / min(1.+self._water/10,5.)
+			#self.elevation = self.elevation-self._water
+			self._water = max(0,level)
+			#self.elevation += self._water
+			self._walkbl = 5./(5+self._veget) / min(1.+self._water/10,5.)
+			y = (self.map.height-self.y)*20
+			y += int(self.elevation+self._water) - 5*int(self._water>0)
+			self.coord = (self.coord[0], y)
 
 	@property
 	def walkability(self):

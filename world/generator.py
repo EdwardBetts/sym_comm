@@ -15,8 +15,9 @@ def init_heightmap(surface, maxheight):
 	# create elevation seed points
 	clusters=[]
 	for i in range(min(surface.width*surface.height/100,200)):
-		clusters+=[(rnd(surface.width), rnd(surface.height),
-			(1.1*(rndf()+.1)**2-.1)*maxheight)]
+		y = rnd(surface.height)
+		clusters+=[(rnd(surface.width), y,
+			(2.*(1-y/surface.height)*(rndf()+.1)**2-.1)*maxheight)]
 	# landschaftsgaertnerei
 	# unten flach
 	clusters.extend([[x,surface.height-1,0] 
@@ -32,7 +33,7 @@ def init_heightmap(surface, maxheight):
 			t = surface.tile(x,y)
 			clsts = [((c[0]-x)**2+(c[1]-y)**2, c[2]) for c in clusters]
 			nearest=sorted(clsts, key=lambda c:c[0])[0]
-			if nearest[1] > maxheight/3:
+			if nearest[1] > maxheight*2/3:
 				t.elevation = nearest[1]+rndf()**2*10
 			elif nearest[1] < maxheight/5:
 				t.elevation = nearest[1]-rndf()**2*6
@@ -40,6 +41,9 @@ def init_heightmap(surface, maxheight):
 				t.elevation = t.elevation/1.1
 			t.elevation = t.elevation + maxheight/2.*(-.5+rndf())
 	smoothen(surface,2)
+
+
+
 
 def smoothen(surface, iterations):
 	# smooth heightmap by calculating means of each
@@ -82,17 +86,18 @@ def rain(surface, amount, springs=None):
 		drops[t] = drops.get(t,0) + n
 		amount -= n
 	# 
-	wettest=1
+	wettrans=[1]
 	count=0
-	while wettest>.05 and count<300:
+	while max(wettrans)>.05 and count<10000:
 		count += 1
 		#fldd = {k:v for k,v in drops.items()}
 		fldd = {}
 		wettest=0
+		# quellen
 		if springs:
 			for s in springs:
-				drops[s] = drops.get(s,0)+max(1./(1.+count/60),.2)
-		# flood
+				drops[s] = drops.get(s,0) + 1./(1.+count/20)
+		# flooding
 		for t,w in drops.items():
 			for n in sorted(t.neighbours.values(), 
 				key=lambda n:drops.get(n,0)):
@@ -101,12 +106,11 @@ def rain(surface, amount, springs=None):
 				gap = min(w + t.elevation - (nw + n.elevation), w)
 				# if neighbour has potential, transfer 1/3 of it
 				if gap > 0:
-					share = gap/3
+					share = gap/4
 					fldd[n] = fldd.get(n,0)+share
 					# erode!
-					if count<200:
-						if n.elevation > t.elevation-10:
-							n.elevation -= min(share,.3)
+					if n.elevation > t.elevation-10:
+						n.elevation -= min(share,.05)
 					fldd[t] = fldd.get(t,0)-share
 					w -= share
 					wettest = max(share, wettest)
@@ -114,8 +118,9 @@ def rain(surface, amount, springs=None):
 		for k,v in fldd.items():
 			level = drops.get(k,0)+v
 			drops[k] = level
-			if level<.05 and abs(v)<.05:
+			if level<.02 and abs(v)<.01:
 				del drops[k]
+		wettrans = [wettest] + wettrans[:5]
 		#print 'Wettest transfer had {:.2f} units water.'.format(
 			#wettest),
 		#print 'Total amount is {:.2f}, max {:.2f}'.format(
@@ -123,4 +128,5 @@ def rain(surface, amount, springs=None):
 	# ok enough
 	for t in surface.tiles.values():
 		t.waterlevel = drops.get(t,0)
-	print 'Total on map: {:.2f}'.format(surface.water())
+	print '{} floodings. Last transfer: {:.2f}. Total on map: {:.2f}'.format(
+		count, wettest, surface.water())
