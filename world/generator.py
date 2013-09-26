@@ -92,7 +92,7 @@ def rain(surface, amount, springs=None):
 	speed=10.
 	count=0
 	erosion=0.
-	while max(wettrans)>.05 and count<5000:
+	while max(wettrans)>.075 and count<3000:
 		count += 1
 		#fldd = {k:v for k,v in drops.items()}
 		fldd = {}
@@ -100,7 +100,7 @@ def rain(surface, amount, springs=None):
 		# quellen
 		if springs:
 			for s in springs:
-				drops[s] = drops.get(s,0) + 5./(1.+count/10)
+				drops[s] = drops.get(s,0) + 5./(1.+count/10.)
 		# flooding
 		for t,w in drops.items():
 			for n in sorted(t.neighbours.values(), 
@@ -121,14 +121,15 @@ def rain(surface, amount, springs=None):
 						if max([nn.elevation-n.elevation 
 							for nn in n.neighbours.values()])<20:
 							n.elevation -= share/10
-							erosion += share/10
+							t.elevation -= share/20
+							erosion += share*3/20
 		# update water map
 		for k,v in fldd.items():
 			level = drops.get(k,0)+v
 			drops[k] = level
 			if level<.05 and abs(v)<.05:
 				del drops[k]
-		wettrans = [wettest] + wettrans[:5]
+		wettrans = [wettest] + wettrans[:4]
 		if max(wettrans)<speed/2:
 			speed /= 2
 			print 'Floating deccelerated under {:.2f}'.format(
