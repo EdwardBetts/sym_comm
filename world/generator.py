@@ -111,16 +111,17 @@ def rain(surface, amount, springs=None):
 				# if neighbour has potential, transfer 1/3 of it
 				if gap > 0:
 					share = gap/3
-					fldd[n] = fldd.get(n,0)+share
+					# nivellate water levels a bit
+					fldd[n] = fldd.get(n,0)+share # take
+					fldd[t] = fldd.get(t,0)-share # give
+					w -= share # now theres less water
+					wettest = max(share, wettest)
 					# erode!
 					if share>.5:
 						if max([nn.elevation-n.elevation 
 							for nn in n.neighbours.values()])<20:
 							n.elevation -= share/10
 							erosion += share/10
-					fldd[t] = fldd.get(t,0)-share
-					w -= share
-					wettest = max(share, wettest)
 		# update water map
 		for k,v in fldd.items():
 			level = drops.get(k,0)+v
