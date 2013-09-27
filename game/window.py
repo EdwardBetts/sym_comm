@@ -1,7 +1,7 @@
 import pyglet
 from pyglet.gl import *
 from pyglet.window import mouse
-from random import randint as rnd
+from random import randrange as rnd
 
 import media
 import graphics
@@ -46,11 +46,11 @@ class Window(pyglet.window.Window):
 		self.worldimage = world.surface.image()
 		self.viewport = view.create(self, self.width/2,self.height/2)
 
-		j = jaja.create(6,5)
+		j = jaja.create(world.surface.width/2,world.surface.height/2)
 		self.viewport.goto(map_pos(j))
-		self.viewport.zoom = .6
-		jaja.create(10,6)
-		jaja.create(4,8)
+		self.viewport.zoom = 1.2
+		for i in range(5):
+			jaja.create(rnd(world.surface.width),rnd(world.surface.height))
 
 		#self.pathfinder = world.pathfinder.find_path(
 			#world.get().tile(5,25),
