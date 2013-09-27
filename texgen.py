@@ -1,7 +1,8 @@
-#/usr/bin/python
+#!/usr/bin/python
 
 from PIL import Image as pil
 from random import random as rnd, choice
+import os
 
 
 adj = [(0,-2),
@@ -21,16 +22,17 @@ for x in range(32):
 		neighbours[(x,y)] = nn
 
 # generate bit mask
-def mask(i):
-	cns = map(lambda x:1.*x, corners(i))
+def mask(index):
+	cns = map(lambda x:1.*x, corners(index))
 	mask = [[cns[0]]*16 + [cns[1]]*16 
 					for i in range(16)]
 	mask+= [[cns[3]]*16 + [cns[2]]*16 
 					for i in range(16)]
-	if i % 5 == 0: # i in [5,10,7,11,13,14] ?
-		for row in cns[8:16]:
-			for x in range(16):
-				row[x+8] = 1.
+	# diagonal connection?
+	if index % 5 < 1: # i in [5,10,7,11,13,14] ?
+		for row in mask[5:19]:
+			for x in range(19):
+				row[x+5] = 1.2
 	# ausfransen!
 	for i in range(30):
 		copy = [row[:] for row in mask]
@@ -66,15 +68,15 @@ def do(i):
 # ground = 0,1,2: dirt, grass, water
 def col(ground):
 	if ground<1: # dirt
-		r = 80+rnd()*40
+		r = 170+rnd()*40
 		g = r-30*rnd()
 		b = g/2+rnd()*20
 	elif ground<2: # grass
-		g = 130+rnd()*40
+		g = 80+rnd()*40
 		r = g*(.6+rnd()/4)
 		b = g*(.25+rnd()/6)
 	else: # water
-		b = 80+rnd()*40
+		b = 90+rnd()*40
 		g = b*(.5+rnd()/5)
 		r = g*(.3+rnd()/10)
 	return (int(r), int(g), int(b))
@@ -97,7 +99,7 @@ def blitt(i,j):
 	for ground, m in enumerate([bmask(j), bmask(i)]):
 		for y,row in enumerate(m):
 			for x,v in enumerate(row):
-				if v > .25:
+				if v > .225:
 					xx=i*32+x
 					yy=j*32+y
 					pix[xx,yy] = blend(col(ground+1), pix[xx,yy], v)
@@ -106,15 +108,18 @@ def gettex(grass, water):
 	return img.crop((water*32,grass*32,water*32+32,grass*32+32))
 
 # init
-#img = pil.new('RGB', (1024,1024), 'black')
-#pix = img.load()
-#print 'prepare dirt layer'
-#for x in range(1024):
-	#for y in range(1024):
-		#pix[x,y] = col(0)
-#img = img.resize((512,512), pil.ANTIALIAS)
-#img.save('dirt.png')
-img = pil.open('dirt.png', 'r')
+if not os.path.isfile('textures/dirt.png'):
+	img = pil.new('RGB', (1024,1024), 'black')
+	pix = img.load()
+	print 'prepare dirt layer'
+	for x in range(1024):
+		for y in range(1024):
+			pix[x,y] = col(0)
+	img = img.resize((512,512), pil.ANTIALIAS)
+	img.save('textures/dirt.png')
+else:
+	img = pil.open('textures/dirt.png', 'r')
+
 pix = img.load()
 
 print 'populate bitmask tables..'
@@ -132,40 +137,40 @@ for j in range(16):
 print
 
 #img.show()
-img.save('grounds.png')
+img.save('textures/ground.png')
 
-bck=pil.new('RGB', (1024-32,1024-32), 'white')
+#bck=pil.new('RGB', (1024-32,1024-32), 'white')
 
 # i, j, grass, water
-land = [(2,4,0,4), (3,4,4,8), (4,4,12,0), (5,4,8,0),
-				(2,5,4,2), (3,5,14,1),(4,5,11,4), (5,5,1,8),
-				(2,6,6,8), (3,6,11,0),(4,6, 5,2), (5,6,8,1),
-				(2,7,6,1), (3,7,13,0),(4,7,10,0), (5,7,1,0),
-				(2,8,1,0), (3,8,3,0), (4,8,1,0), (5,8,0,4)
-				]
+#land = [(2,4,0,4), (3,4,4,8), (4,4,12,0), (5,4,8,0),
+				#(2,5,4,2), (3,5,14,1),(4,5,11,4), (5,5,1,8),
+				#(2,6,6,8), (3,6,11,0),(4,6, 5,2), (5,6,8,1),
+				#(2,7,6,1), (3,7,13,0),(4,7,10,0), (5,7,1,0),
+				#(2,8,1,0), (3,8,3,0), (4,8,1,0), (5,8,0,4)
+				#]
 
-land = [[choice([0,0,0,0,0,1,1,1,2])]*32 for i in range(32)]
-for r in range(512*2):
-	i,j = (choice(range(32)), choice(range(32)))
-	try:
-		land[j][i] = max([land[jj][ii] for ii,jj in 
-			neighbours[(i,j)]])
-	except:
-		pass
+#land = [[choice([0,0,0,0,0,1,1,1,2])]*32 for i in range(32)]
+#for r in range(512*2):
+	#i,j = (choice(range(32)), choice(range(32)))
+	#try:
+		#land[j][i] = max([land[jj][ii] for ii,jj in 
+			#neighbours[(i,j)]])
+	#except:
+		#pass
 	
 
 #for i, j, g, w in land:
-for i in range(31):
-	for j in range(31):
-		gnd = land[j][i]
-		g = sum([int(land[jj][ii]==1)*b for b,ii,jj in 
-			[(1,i,j),(2,i+1,j),(4,i+1,j+1),(8,i,j+1)]])
-		w = sum([int(land[jj][ii]==2)*b for b,ii,jj in 
-			[(1,i,j),(2,i+1,j),(4,i+1,j+1),(8,i,j+1)]])
+#for i in range(31):
+	#for j in range(31):
+		#gnd = land[j][i]
+		#g = sum([int(land[jj][ii]==1)*b for b,ii,jj in 
+			#[(1,i,j),(2,i+1,j),(4,i+1,j+1),(8,i,j+1)]])
+		#w = sum([int(land[jj][ii]==2)*b for b,ii,jj in 
+			#[(1,i,j),(2,i+1,j),(4,i+1,j+1),(8,i,j+1)]])
 		#print g,w
-		tex = gettex(g,w)
-		bck.paste(tex,(i*32,j*32))
+		#tex = gettex(g,w)
+		#bck.paste(tex,(i*32,j*32))
 
-bck.save('land.png')
+#bck.save('land.png')
 #bck.show()
 

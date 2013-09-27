@@ -373,7 +373,7 @@ class Map(object):
 
 def load_tex():
 	#tex = media.world_tex('ground.png')
-	t = pyglet.image.load('media/world/ground.png')
+	t = pyglet.image.load('textures/ground.png')
 	tex = media.atlas.add(t)
 	if not tex:
 		return
