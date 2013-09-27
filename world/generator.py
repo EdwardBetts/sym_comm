@@ -92,6 +92,7 @@ def rain(surface, amount, springs=None):
 	speed=10.
 	count=0
 	erosion=0.
+	greenest=0
 	while max(wettrans)> .1 and count<5000:
 		count += 1
 		#fldd = {k:v for k,v in drops.items()}
@@ -127,6 +128,8 @@ def rain(surface, amount, springs=None):
 					# fertilize
 					if share < .2:
 						n._veget = min(n._veget+.01, 100.)
+						if n._veget > greenest:
+							greenest = n._veget
 		# update water map
 		for k,v in fldd.items():
 			level = drops.get(k,0)+v
@@ -145,6 +148,9 @@ def rain(surface, amount, springs=None):
 	# ok enough
 	for t in surface.tiles.values():
 		t.waterlevel = drops.get(t,0)
+		t.vegetation = t._veget
 	print '{} floodings. Last transfer: {:.2f}. Total on map: {:.2f} on {} tiles.'.format(
 		count, wettest, surface.water(), len(drops)),
-	print 'Grade of erosion was {:.2f}.'.format(erosion)
+	print 'Grade of erosion was {:.2f}, greenest node has {:.2f} fert ix.'.format(
+		erosion, greenest)
+
