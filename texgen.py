@@ -4,11 +4,11 @@ from PIL import Image as pil
 from random import random as rnd, choice
 
 
-adj = [               (0,-2),
-			        (-1,-1),(0,-1),(1,-1),
-			(-2,0), (-1,0),        (1,0),(2,0),
-			        (-1,1), (0,1), (1,1),
-											(0,2)]
+adj = [(0,-2),
+			 (-1,-1),(0,-1),(1,-1),
+			 (-2,0), (-1,0),(1,0),(2,0),
+			 (-1,1), (0,1), (1,1),
+			 (0,2)]
 adj = [(x,y) for y in range(-2,3) for x in range(-2,3)]
 
 corners = lambda i: [i >> b & 1 for b in range(4)]
@@ -27,6 +27,10 @@ def mask(i):
 					for i in range(16)]
 	mask+= [[cns[3]]*16 + [cns[2]]*16 
 					for i in range(16)]
+	if i % 5 == 0: # i in [5,10,7,11,13,14] ?
+		for row in cns[8:16]:
+			for x in range(16):
+				row[x+8] = 1.
 	# ausfransen!
 	for i in range(30):
 		copy = [row[:] for row in mask]
