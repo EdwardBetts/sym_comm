@@ -154,3 +154,18 @@ def rain(surface, amount, springs=None):
 	print 'Grade of erosion was {:.2f}, greenest node has {:.2f} fert ix.'.format(
 		erosion, greenest)
 
+
+
+# grow grass
+def sprout(surface):
+	for i in range(10):
+		grow = {}
+		for y in range(surface.height):
+			for x in range(surface.width):
+				t = surface.tile(x,y)
+				srnd = sum([n._veget for n in t.neighbours.values()])
+				if srnd>0:
+					grow[t] = rndf()*srnd/10
+		for t,g in grow.items():
+			t.vegetation += g
+

@@ -22,6 +22,7 @@ for i in range(2):
 		springs=[s for s in surface.highest(
 		springlevel+(springrange)/(i+1))[springlevel::springrange/10]])
 tilemap.generator.smoothen(surface,1)
+tilemap.generator.sprout(surface)
 surface.init_mesh()
 
 # A* path finding initiator
