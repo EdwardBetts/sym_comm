@@ -105,7 +105,7 @@ class Tile(object):
 	@vegetation.setter
 	def vegetation(self, level):
 	    self._veget = level
-	    self._walkbl = 5./(5+self._veget) / min(1.+self._water/10,5.)
+	    self._walkbl = 5./(5+self._veget) / min(1.+int(self._water>0)+self._water/10,5.)
 
 	@property
 	def waterlevel(self):
@@ -116,7 +116,8 @@ class Tile(object):
 			# -10: ground water..
 			self._water = max(max(0,-10-self.elevation),level)
 			#self.elevation += self._water
-			self._walkbl = 5./(5+self._veget) / min(1.+self._water/10,5.)
+			#self._walkbl = 5./(5+self._veget) / min(1.+self._water/10,5.)
+			self._walkbl = 5./(5+self._veget) / min(1.+int(self._water>0)+self._water/10,5.)
 			y = (self.map.height-self.y)*20
 			#y += int(self.elevation+self._water) - 5*int(self._water>0)
 			y += int(self.elevation)
@@ -341,23 +342,19 @@ class Map(object):
 								val+=int(nn.elevation-tile.elevation)
 						cols=(max(0,min(255,val)),)*12
 						# schoen auch die ecken!
-						nn = [(tile.waterlevel, tile.elevation)]
+						nn = [(tile.waterlevel, tile.vegetation)]
 						for d in ['e', 'ne', 'n']:
 							if d in tile.neighbours:
 								nn.append((tile.neighbours.get(d).waterlevel,
-									tile.neighbours.get(d).elevation))
+									tile.neighbours.get(d).vegetation))
 							else:
 								nn.append((None, 0))
 						# elevation?
-						cns = [(e>(20+3*rndf()), w>0)
+						cns = [(e>1, w>0)
 							for (w,e) in nn]
 						# gras, wasser tex ids
-						gx = sum([int(v[0])*2**i for i,v in enumerate(cns)])
+						gx = 15-sum([int(v[0])*2**i for i,v in enumerate(cns)])
 						wx = sum([int(v[1])*2**i for i,v in enumerate(cns)])
-						coor = (wx*txmx/16,gx*txmy/16,
-										(wx+1)*txmx/16,gx*txmy/16,
-										(wx+1)*txmx/16,(gx+1)*txmy/16,
-										wx*txmx/16,(gx+1)*txmy/16)
 						coor = (wx*txmx/16,gx*txmy/16,
 										(wx+1)*txmx/16,gx*txmy/16,
 										(wx+1)*txmx/16,(gx+1)*txmy/16,

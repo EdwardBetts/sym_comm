@@ -29,7 +29,7 @@ def mask(index):
 	mask+= [[cns[3]]*16 + [cns[2]]*16 
 					for i in range(16)]
 	# diagonal connection?
-	if index % 5 < 1: # i in [5,10,7,11,13,14] ?
+	if index in [5,10,7,11,13,14]: # % 5 < 1:
 		for row in mask[5:19]:
 			for x in range(19):
 				row[x+5] = 1.2
