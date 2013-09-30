@@ -89,7 +89,7 @@ def rain(surface, amount, springs=None):
 	print 'Number of wet tiles at beginning is {}.'.format(len(drops))
 	# 
 	wettrans=[1]
-	speed=10.
+	speed=2.
 	count=0
 	erosion=0.
 	greenest=0
@@ -158,14 +158,17 @@ def rain(surface, amount, springs=None):
 
 # grow grass
 def sprout(surface):
+	print 'grow grass..'
 	for i in range(10):
 		grow = {}
 		for y in range(surface.height):
 			for x in range(surface.width):
 				t = surface.tile(x,y)
+				wind_cover = sum([abs(n.elevation-t.elevation) for n in t.neighbours.values()])
+				wind = 10+t.elevation
 				srnd = sum([n._veget for n in t.neighbours.values()])
 				if srnd>0:
-					grow[t] = rndf()*srnd/10
+					grow[t] = rndf()*srnd*wind_cover/wind - .5
 		for t,g in grow.items():
 			t.vegetation += g
 

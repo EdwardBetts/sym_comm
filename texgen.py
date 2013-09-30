@@ -29,10 +29,10 @@ def mask(index):
 	mask+= [[cns[3]]*16 + [cns[2]]*16 
 					for i in range(16)]
 	# diagonal connection?
-	if index in [5,10,7,11,13,14]: # % 5 < 1:
-		for row in mask[5:19]:
-			for x in range(19):
-				row[x+5] = 1.2
+	center = int(index in [5,7,10,11,13,14,15])*1. # % 5 < 1:
+	for row in mask[5:19]:
+		for x in range(19):
+			row[x+5] = center
 	# ausfransen!
 	for i in range(30):
 		copy = [row[:] for row in mask]
