@@ -156,31 +156,57 @@ def rain(surface, amount, springs=None):
 
 
 
-# grow grass
+# sprout grass
 def sprout(surface):
-	print 'grow grass..'
+	print 'sprout grass..'
 	params = {}
+	# precompute some stuff for performance
 	for y in range(surface.height):
 		for x in range(surface.width):
 			t = surface.tile(x,y)
-			wind_cover = sum([abs(n.elevation-t.elevation) for n in t.neighbours.values()])
-			wind = max(1.,10+t.elevation**2)
-			params[t] = (wind_cover, wind)
-	for i in range(25):
-		grow = {}
+			wind_cover = 1+sum([n.elevation-t.elevation
+				for n in t.neighbours.values()])
+			wind = max(1.,10+(t.elevation**2/5000))
+			slope = 1.+(t.slope**2/400.)
+			params[t] = (wind_cover, wind, slope)
+	# disperse seeds in range
+	sprout = {}
+	# as many times as:
+	for i in range(40):
+		# just throw seed randomly into neighbourhood!
 		for y in range(surface.height):
 			for x in range(surface.width):
 				t = surface.tile(x,y)
-				wind_cover, wind = params.get(t)
-				srnd = sum([n._veget for n in t.neighbours.values()]) / \
-								len(t.neighbours)
-				slope = 1+t.slope[1]
-				if srnd>0:
-					growing = rndf()
-					growing += rndf()*srnd*wind_cover/wind/slope**2
-					growing /= (1.+i/10.)
-					growing -= rndf()*t.waterlevel/10 + .1
-					grow[t] = growing
-		for t,g in grow.items():
-			t.vegetation += g
+				for i in range(int(t.vegetation)):
+					n = surface.tile(x-3+rnd(7), y-3+rnd(7))
+					if n:
+						if n.elevation < t.elevation+20:
+							sprout[n] = sprout.get(n,0)+t.vegetation/3
+				#srnd = sum([n._veget for n in t.neighbours.values()]) / \
+								#len(t.neighbours)
+				#slope = 1+t.slope[1]
+				#if srnd>0:
+					#growing = rndf()
+					#growing += rndf()*srnd*wind_cover/wind/slope**2
+					#growing /= (1.+i/10.)
+					#growing -= rndf()*t.waterlevel/10 + .1
+					#grow[t] = growing
+		# compute if seed spawns
+		for t,g in sprout.items():
+			if t.waterlevel > 5 or t.slope > 30 or t.elevation>30:
+				# this is not a place where plants can grow
+				t.vegetation -= rndf()*.1
+			else:
+				# this might be
+				wind_cover, wind, slope = params.get(t)
+				# under water:
+				if t.waterlevel > 0:
+					chance = (t.waterlevel-1.5)**2 * rndf()
+					chance /= slope
+				else: # not under water
+					chance = (i/5.) + wind_cover / wind / slope
+					chance *= rndf() * (2.+t.vegetation)
+				if chance > .1:
+					t.vegetation += g
+					sprout[t] = 0
 

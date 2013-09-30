@@ -29,17 +29,18 @@ def mask(index):
 	mask+= [[cns[3]]*16 + [cns[2]]*16 
 					for i in range(16)]
 	# diagonal connection?
-	center = int(index in [5,7,10,11,13,14,15])*1. # % 5 < 1:
-	for row in mask[5:19]:
-		for x in range(19):
-			row[x+5] = center
-	# ausfransen!
-	for i in range(30):
-		copy = [row[:] for row in mask]
-		for y in range(2,30):
-			for x in range(2,30):
-				xx,yy = choice(neighbours[(x,y)])
-				mask[y][x] = copy[yy][xx]
+	if not index in [3, 6, 12, 9]:
+		center = int(index in [5,7,10,11,13,14,15])*1. # % 5 < 1:
+		for row in mask[5:19]:
+			for x in range(19):
+				row[x+5] = center
+		# ausfransen!
+		for i in range(30):
+			copy = [row[:] for row in mask]
+			for y in range(2,30):
+				for x in range(2,30):
+					xx,yy = choice(neighbours[(x,y)])
+					mask[y][x] = copy[yy][xx]
 	# noise
 	#noise=lambda n: n/(n+6.) + rnd()*11./(n+6)
 	noise=lambda n: 1.+(-.65+rnd())/(1+i/10.)

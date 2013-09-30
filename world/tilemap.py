@@ -49,7 +49,8 @@ class Tile(object):
 		# topological elevation of this map tile; heightmap
 		# feature
 		self.elevation = 0
-		# tuple indicating to which neighbour node the slope is steapest
+		# value indicating how big the difference between highest and
+		# lowest neighbours is
 		self._slope = None
 
 		# upper-left corner of this tile for to estimate
@@ -106,10 +107,10 @@ class Tile(object):
 	@property
 	def slope(self):
 		if not self._slope:
-			self._slope = (None, -1)
-			for n in self.neighbours.values():
-				if abs(n.elevation-self.elevation)>self._slope[1]:
-					self._slope = (n, abs(n.elevation-self.elevation))
+			#self._slope = (None, -1)
+			elevs = sorted([n.elevation-self.elevation for n in 
+				self.neighbours.values()])
+			self._slope = elevs[-1]-elevs[0]
 		return self._slope
 
 	@property
