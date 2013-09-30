@@ -159,16 +159,28 @@ def rain(surface, amount, springs=None):
 # grow grass
 def sprout(surface):
 	print 'grow grass..'
-	for i in range(10):
+	params = {}
+	for y in range(surface.height):
+		for x in range(surface.width):
+			t = surface.tile(x,y)
+			wind_cover = sum([abs(n.elevation-t.elevation) for n in t.neighbours.values()])
+			wind = max(1.,10+t.elevation**2)
+			params[t] = (wind_cover, wind)
+	for i in range(25):
 		grow = {}
 		for y in range(surface.height):
 			for x in range(surface.width):
 				t = surface.tile(x,y)
-				wind_cover = sum([abs(n.elevation-t.elevation) for n in t.neighbours.values()])
-				wind = 10+t.elevation
-				srnd = sum([n._veget for n in t.neighbours.values()])
+				wind_cover, wind = params.get(t)
+				srnd = sum([n._veget for n in t.neighbours.values()]) / \
+								len(t.neighbours)
+				slope = 1+t.slope[1]
 				if srnd>0:
-					grow[t] = rndf()*srnd*wind_cover/wind - .5
+					growing = rndf()
+					growing += rndf()*srnd*wind_cover/wind/slope**2
+					growing /= (1.+i/10.)
+					growing -= rndf()*t.waterlevel/10 + .1
+					grow[t] = growing
 		for t,g in grow.items():
 			t.vegetation += g
 

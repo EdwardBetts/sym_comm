@@ -49,6 +49,8 @@ class Tile(object):
 		# topological elevation of this map tile; heightmap
 		# feature
 		self.elevation = 0
+		# tuple indicating to which neighbour node the slope is steapest
+		self._slope = None
 
 		# upper-left corner of this tile for to estimate
 		# where it is to find on the graphical output
@@ -98,13 +100,24 @@ class Tile(object):
 		#y += int(self.elevation+self._water) - 5*int(self._water>0)
 		y += int(self.elevation)
 		self.coord = (self.coord[0],y)	
+		self._slope = None
+
+	# slope
+	@property
+	def slope(self):
+		if not self._slope:
+			self._slope = (None, -1)
+			for n in self.neighbours.values():
+				if abs(n.elevation-self.elevation)>self._slope[1]:
+					self._slope = (n, abs(n.elevation-self.elevation))
+		return self._slope
 
 	@property
 	def vegetation(self):
 	    return self._veget
 	@vegetation.setter
 	def vegetation(self, level):
-	    self._veget = level
+	    self._veget = max(0,min(level, 10))
 	    self._walkbl = 5./(5+self._veget) / min(1.+int(self._water>0)+self._water/10,5.)
 
 	@property
