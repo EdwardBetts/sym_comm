@@ -11,6 +11,7 @@ from world import inhabitants
 from world.inhabitants import jaja
 
 
+
 # only pass inhabitants!
 def map_pos(i):
 	if isinstance(i, inhabitants.Inhabitant):
@@ -57,6 +58,8 @@ class Window(pyglet.window.Window):
 
 
 
+
+
 	def on_resize(self, width, height):
 		self.viewport.update()
 		return pyglet.event.EVENT_HANDLED
@@ -69,26 +72,30 @@ class Window(pyglet.window.Window):
 	
 	def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
 		if buttons & mouse.LEFT:
-			self.viewport.move(dx,dy)
+			self.viewport.move(-dx,-dy)
 			# updates itself
 
 
 	def on_key_press(self, symbol, modifiers):
+		print symbol, modifiers
 		if symbol == key.LEFT:
-			self.viewport.move(10,0)
-		elif symbol == key.RIGHT:
 			self.viewport.move(-10,0)
+		elif symbol == key.RIGHT:
+			self.viewport.move(10,0)
+		elif symbol == key.S:
+			if modifiers & key.MOD_CTRL:
+				media.screenshot()
 
 
 	def keyhandler(self):
 		if self.keys[key.LEFT]:
-			self.viewport.move(10,0)
+			self.viewport.move(-10,0)
 		elif self.keys[key.UP]:
-			self.viewport.move(0,-10)
-		elif self.keys[key.DOWN]:
 			self.viewport.move(0,10)
+		elif self.keys[key.DOWN]:
+			self.viewport.move(0,-10)
 		elif self.keys[key.RIGHT]:
-			self.viewport.move(-10,10)
+			self.viewport.move(10,0)
 
 
 	def on_draw(self):
@@ -123,4 +130,7 @@ def create():
 	return window
 
 def get():
+	global window
+	if not window:
+		window = create()
 	return window
