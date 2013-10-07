@@ -35,14 +35,17 @@ class Camera:
 			self.zoom = 4
 		elif self.zoom < .25:
 			self.zoom = .25
+		#TODO: not good!
 		self.move(-(pos[0]-self.width/2)*steps/10,
 			-(pos[1]-self.height/2)*steps/10)
 		self.update()
-		
+	
+
 	def move(self, dx, dy):
 		self.x -= dx*self.zoom
 		self.y -= dy*self.zoom
 		self.update()
+
 
 	def goto(self, pos):
 		self.x, self.y = pos

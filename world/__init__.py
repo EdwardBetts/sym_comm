@@ -17,10 +17,10 @@ surface = tilemap.new(width, height, maxelevation)
 springlevel=len(surface)/5
 springrange=springlevel/2
 print springlevel
-for i in range(2):
+for i in range(1):
 	tilemap.generator.rain(surface, 40, 
 		springs=[s for s in surface.highest(
-		springlevel+(springrange)/(i+1))[springlevel::springrange/10]])
+		springlevel+(springrange)/(i+1))[springlevel::springrange/5]])
 tilemap.generator.smoothen(surface,1)
 tilemap.generator.sprout(surface)
 surface.init_mesh()

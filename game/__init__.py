@@ -1,4 +1,4 @@
-mapsize=(128,64)
+mapsize=(64,64)
 mapelevation=65
 
 

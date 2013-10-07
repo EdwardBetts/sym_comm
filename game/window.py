@@ -29,8 +29,8 @@ class Window(pyglet.window.Window):
 		glEnable(GL_TEXTURE_2D)
 		glShadeModel(GL_SMOOTH)
 
-		keys = key.KeyStateHandler()
-		push_handlers(keys)
+		self.keys = key.KeyStateHandler()
+		self.push_handlers(self.keys)
 
 		#self.label = pyglet.text.Label('Gebrauchswert')
 
@@ -73,12 +73,26 @@ class Window(pyglet.window.Window):
 			# updates itself
 
 
-	def on_key_press(symbol, modofiers):
-		for k,v in keys.items():
-			if v:
-				print k
+	def on_key_press(self, symbol, modifiers):
+		if symbol == key.LEFT:
+			self.viewport.move(10,0)
+		elif symbol == key.RIGHT:
+			self.viewport.move(-10,0)
+
+
+	def keyhandler(self):
+		if self.keys[key.LEFT]:
+			self.viewport.move(10,0)
+		elif self.keys[key.UP]:
+			self.viewport.move(0,-10)
+		elif self.keys[key.DOWN]:
+			self.viewport.move(0,10)
+		elif self.keys[key.RIGHT]:
+			self.viewport.move(-10,10)
+
 
 	def on_draw(self):
+		self.keyhandler()
 		glClear(GL_COLOR_BUFFER_BIT)
 		pyglet.clock.tick() # force framerate set above
 		#self.label.draw()
