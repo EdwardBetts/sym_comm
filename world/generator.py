@@ -89,7 +89,7 @@ def rain(surface, amount, springs=None):
 	print 'Number of wet tiles at beginning is {}.'.format(len(drops))
 	# 
 	wettrans=[1]
-	speed=2.
+	speed=1.
 	count=0
 	erosion=0.
 	greenest=0
@@ -160,38 +160,31 @@ def rain(surface, amount, springs=None):
 def sprout(surface):
 	print 'sprout grass..'
 	params = {}
+	sprout = {}
 	# precompute some stuff for performance
 	for y in range(surface.height):
 		for x in range(surface.width):
 			t = surface.tile(x,y)
 			wind_cover = 1+sum([n.elevation-t.elevation
 				for n in t.neighbours.values()])
-			wind = max(1.,10+(t.elevation**2/5000))
-			slope = 1.+(t.slope**2/400.)
+			wind = max(1.,10+(t.elevation**2/10000))
+			slope = 1.+(t.slope**2/500)
 			params[t] = (wind_cover, wind, slope)
+			if rndf()<.2:
+				sprout[t] = rndf()*2
 	# disperse seeds in range
-	sprout = {}
 	# as many times as:
-	for i in range(40):
+	for i in range(30):
 		# just throw seed randomly into neighbourhood!
 		for y in range(surface.height):
 			for x in range(surface.width):
 				t = surface.tile(x,y)
 				for i in range(int(t.vegetation)):
-					n = surface.tile(x-3+rnd(7), y-3+rnd(7))
+					n = surface.tile(x-4+rnd(9), y-4+rnd(9))
 					if n:
 						if n.elevation < t.elevation+20:
 							sprout[n] = sprout.get(n,0)+t.vegetation/3
-				#srnd = sum([n._veget for n in t.neighbours.values()]) / \
-								#len(t.neighbours)
-				#slope = 1+t.slope[1]
-				#if srnd>0:
-					#growing = rndf()
-					#growing += rndf()*srnd*wind_cover/wind/slope**2
-					#growing /= (1.+i/10.)
-					#growing -= rndf()*t.waterlevel/10 + .1
-					#grow[t] = growing
-		# compute if seed spawns
+		# compute if seeds spawn
 		for t,g in sprout.items():
 			if t.waterlevel > 5 or t.slope > 30 or t.elevation>30:
 				# this is not a place where plants can grow
@@ -205,7 +198,7 @@ def sprout(surface):
 					chance /= slope
 				else: # not under water
 					chance = (i/5.) + wind_cover / wind / slope
-					chance *= rndf() * (2.+t.vegetation)
+					chance *= rndf() * (2.+t.vegetation) * g
 				if chance > .1:
 					t.vegetation += g
 					sprout[t] = 0
