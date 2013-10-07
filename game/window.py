@@ -2,6 +2,7 @@ import pyglet
 from pyglet.gl import *
 from pyglet.window import mouse, key
 from random import randrange as rnd
+from time import time
 
 import media
 import graphics
@@ -13,6 +14,7 @@ from world.inhabitants import jaja
 
 
 # only pass inhabitants!
+#TODO: we can't do this in here!
 def map_pos(i):
 	if isinstance(i, inhabitants.Inhabitant):
 		return world.surface.ground_position(i.x, i.y)
@@ -28,10 +30,12 @@ class Window(pyglet.window.Window):
 		super(Window, self).__init__(resizable=True, config=config)
 		glClearColor(0.1,0.2,0,1)
 		glEnable(GL_TEXTURE_2D)
-		glShadeModel(GL_SMOOTH)
+		#glShadeModel(GL_SMOOTH) # TODO: what does this do?
 
 		self.keys = key.KeyStateHandler()
 		self.push_handlers(self.keys)
+		# some kind of event history
+		self.history={}
 
 		#self.label = pyglet.text.Label('Gebrauchswert')
 
@@ -46,9 +50,9 @@ class Window(pyglet.window.Window):
 		#impt = pyglet.image.SolidColorImagePattern((100,180,90,200))
 		#self.bg = pyglet.image.create(800,600, impt)
 
-		self.worldimage = world.surface.image()
 		self.viewport = view.create(self, self.width/2,self.height/2)
 
+		#TODO: get this out of here!
 		j = jaja.create(world.surface.width/2,world.surface.height/2)
 		self.viewport.goto(map_pos(j))
 		self.viewport.zoom = 1.2
@@ -63,6 +67,18 @@ class Window(pyglet.window.Window):
 	def on_resize(self, width, height):
 		self.viewport.update()
 		return pyglet.event.EVENT_HANDLED
+
+
+	def on_mouse_press(self, x, y, button, modifiers):
+		if button & mouse.LEFT:
+			# double click:
+			if time() - self.history.get('left_click',0) < .5:
+				#TODO: delegate this where it belongs...
+				self.viewport.zoom = 4.25-self.viewport.zoom
+				# TODO: and take care of mouse pointer position translation
+				self.viewport.update()
+			self.history['left_click']=time()
+
 
 
 	def on_mouse_scroll(self,x, y, scroll_x, scroll_y):
@@ -104,34 +120,23 @@ class Window(pyglet.window.Window):
 		pyglet.clock.tick() # force framerate set above
 		#self.label.draw()
 
-		#glEnable(GL_TEXTURE_2D)
-		#glBindTexture(world.surface.tex.target,world.surface.tex.id)
-		#self.worldimage.draw() # map
 		world.draw()
-		#glDisable(GL_TEXTURE_2D)
 
 		self.clock.draw() # clock
-
-		#if self.pathfinder:
-			#if self.pathfinder.result():
-				#self.pathfinder.draw()
-				#j = world.inhabitants.registry[-1]
-				#if len(j.path)<1:
-					#j.path = self.pathfinder.result()
 
 		inhabitants.draw()
 		inhabitants.update()
 
 
-window = None
+instance = None
 
 def create():
-	global window
-	window = Window()
-	return window
+	global instance
+	instance = Window()
+	return instance
 
 def get():
-	global window
-	if not window:
-		window = create()
-	return window
+	global instance
+	if not instance:
+		instance = create()
+	return instance

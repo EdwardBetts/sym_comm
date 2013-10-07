@@ -35,21 +35,30 @@ class Camera:
 			self.zoom = 4
 		elif self.zoom < .25:
 			self.zoom = .25
+		else:
 		#TODO: not good!
-		self.move((pos[0]-self.width/2)*steps/10,
-			(pos[1]-self.height/2)*steps/10)
-		self.update()
+			self.move((pos[0]-self.width/2)*steps/10,
+				(pos[1]-self.height/2)*steps/10)
+			self.update()
 	
 
 	def move(self, dx, dy):
 		self.x += dx*self.zoom
 		self.y += dy*self.zoom
+		print 'viewport position is ({}, {})'.format(self.x, self.y)
 		self.update()
 
 
 	def goto(self, pos):
 		self.x, self.y = pos
 		self.update()
+
+
+###################################################################
+###################################################################
+###################################################################
+###################################################################
+###################################################################
 
 cam=None
 def create(window, width, height):

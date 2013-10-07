@@ -400,6 +400,9 @@ instance = None
 
 
 def load_tex():
+	"""
+	Loads ground texture into central texture atlas. This method
+	is called when tile map is created."""
 	tex = media.atlas_load('ground.png')
 	if not tex:
 		return
@@ -420,6 +423,9 @@ def load_tex():
 
 # draw tilemap
 def draw():
+	"""
+	Renders Map instance, provided it has been initialized before.
+	"""
 	glEnable(GL_TEXTURE_2D)
 	glBindTexture(tex.target, tex.id)
 	instance.image().draw()
