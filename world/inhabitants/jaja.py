@@ -3,7 +3,7 @@ import pyglet
 import media
 import world.inhabitants
 
-path = os.sep.join(['media', 'inhabitants'])
+path = os.sep.join(['inhabitants'])
 img = media.sprite(path, 'jaja01.png')
 
 class Jaja(world.inhabitants.Inhabitant):

@@ -20,7 +20,6 @@ nrel = [(u'n', 0,-1),
 	  (u'w',-1, 0),
 	 (u'nw',-1,-1)]
 
-tex=None
 
 # implementation of single tile map node
 class Tile(object):
@@ -250,7 +249,7 @@ class Map(object):
 		self.height = height
 		self.tiles = {}
 		self.batch=None
-		self.tex = None
+		tex = None
 
 
 	# create content
@@ -336,16 +335,17 @@ class Map(object):
 		dummy method that returns the graphical representation
 		of a random map tile as a vertex_list, just for debugging"""
 		# http://packages.python.org/pyglet/api/pyglet.image.AbstractImage-class.html#blit_into
-		if not self.tex:
-			self.tex = load_tex()
-		if self.tex:
-			#glEnable(self.tex.target)
+		global tex
+		if not tex:
+			tex = load_tex()
+		if tex:
+			#glEnable(tex.target)
 			if self.batch is None:
 				self.batch = gfx.Batch()
 				glActiveTexture(GL_TEXTURE0+0)
-				glBindTexture(self.tex.target, self.tex.id)
-				txmx=self.tex.tex_coords[3]-self.tex.tex_coords[0]
-				txmy=self.tex.tex_coords[7]-self.tex.tex_coords[4]
+				glBindTexture(tex.target, tex.id)
+				txmx=tex.tex_coords[3]-tex.tex_coords[0]
+				txmy=tex.tex_coords[7]-tex.tex_coords[4]
 				for x in range(0,self.width):
 					for y in range(0,self.height):
 						tile = self.tiles[(x,y)]
@@ -382,18 +382,29 @@ class Map(object):
 
 
 
+##################################################################
+##################################################################
+##################################################################
+##################################################################
+#####################         statix          ####################
+##################################################################
+##################################################################
+##################################################################
+##################################################################
+
+# module attributes
+# tilemap ground texture
+tex = None
+# singleton instance
+instance = None
+
+
 def load_tex():
-	#tex = media.world_tex('ground.png')
-	t = pyglet.image.load('textures/ground.png')
-	tex = media.atlas.add(t)
+	tex = media.atlas_load('ground.png')
 	if not tex:
 		return
 	#data=tex.get_image_data().get_data('RGBA', tex.width*4)
 	target=GL_TEXTURE_2D
-	#tex=img.get_texture()
-	#tid=tex.id
-	#tid=glGenTextures(1)
-	#glActiveTexture?
 	glEnable(tex.target)
 	glBindTexture(tex.target, tex.id)
 	glTexParameteri(tex.target, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
@@ -401,21 +412,30 @@ def load_tex():
 	#glTexParameteri(tex.target, GL_TEXTURE_WRAP_S, GL_CLAMP)
 	#glTexParameteri(tex.target, GL_TEXTURE_WRAP_T, GL_CLAMP)
 	print tex.width, tex.height
-	#glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width, tex.width,
-		 #0, GL_RGBA, GL_UNSIGNED_BYTE, data)
 	print tex.tex_coords
-	#glDisable(target)
-	#tex.save('t.png')
+	glDisable(tex.target)
 	return tex
 
+
+
+# draw tilemap
+def draw():
+	glEnable(GL_TEXTURE_2D)
+	glBindTexture(tex.target, tex.id)
+	instance.image().draw()
+	glDisable(GL_TEXTURE_2D)
 
 
 # create instance
 def new(width, height, maxlevel):
 	"""
-	Creates a new Map instance with a basic heightmap and returns it."""
+	Creates a new Map instance with a basic heightmap and returns it.
+	Also loads ground texture."""
+	global instance, tex
+	tex = load_tex()
 	surface = Map(width, height)
 	surface.init(maxlevel)
+	instance = surface
 	return surface
 
 

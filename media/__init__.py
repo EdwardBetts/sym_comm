@@ -4,7 +4,7 @@ import time
 
 ext_img = ['png', 'jpg', 'gif', 'tiff', 'bmp']
 
-pyglet.resource.path=['.']
+pyglet.resource.path=['textures']
 pyglet.resource.reindex()
 
 path_inhabitants = os.sep.join(['media', 'inhabitants'])
@@ -68,6 +68,17 @@ def image(path, filename):
 
 def sprite(path, filename):
 	return pyglet.resource.image(os.sep.join([path, filename]))
+
+
+def atlas_load(filename):
+	"""
+	Loads an image file located in the textures directory
+	and specified by the given filename, adds it to the
+	texture atlas and returns the resulting texture."""
+	t = pyglet.image.load(os.path.join('textures','ground.png'))
+	tex = atlas.add(t)
+	return tex
+
 
 
 # takes a screenshot and saves it to the screenshot directory

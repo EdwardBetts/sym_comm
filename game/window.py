@@ -104,9 +104,10 @@ class Window(pyglet.window.Window):
 		pyglet.clock.tick() # force framerate set above
 		#self.label.draw()
 
-		glEnable(GL_TEXTURE_2D)
-		glBindTexture(world.surface.tex.target,world.surface.tex.id)
-		self.worldimage.draw() # map
+		#glEnable(GL_TEXTURE_2D)
+		#glBindTexture(world.surface.tex.target,world.surface.tex.id)
+		#self.worldimage.draw() # map
+		world.draw()
 		#glDisable(GL_TEXTURE_2D)
 
 		self.clock.draw() # clock
