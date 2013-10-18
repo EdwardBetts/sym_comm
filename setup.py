@@ -7,7 +7,8 @@ setup(
     scripts = ['gltest.py'],
 
     install_requires = ['docutils>=0.3',
-                        'pyglet>+1.1.4'],
+                        'pyglet>=1.1.4',
+                        'PIL>=1.1.6'],
 
     package_data = {
         # If any package contains *.txt or *.rst files, include them:
