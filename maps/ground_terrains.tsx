@@ -2,9 +2,9 @@
 <tileset name="ground_terrains" tilewidth="32" tileheight="32">
  <image source="../textures/ground.png" width="512" height="512"/>
  <terraintypes>
-  <terrain name="Dirt" tile="-1"/>
-  <terrain name="Grass" tile="-1"/>
-  <terrain name="Water" tile="-1"/>
+  <terrain name="Dirt" tile="0"/>
+  <terrain name="Grass" tile="240"/>
+  <terrain name="Water" tile="15"/>
  </terraintypes> <tile id="0" terrain="0,0,0,0"/>
  <tile id="1" terrain="2,0,0,0"/>
  <tile id="2" terrain="0,2,0,0"/>
