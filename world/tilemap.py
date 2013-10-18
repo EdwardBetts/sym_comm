@@ -119,7 +119,7 @@ class Tile(object):
 	@vegetation.setter
 	def vegetation(self, level):
 	    self._veget = max(0,min(level, 10))
-	    self._walkbl = 5./(5+self._veget) / min(1.+int(self._water>0)+self._water/10,5.)
+	    self._walkbl = 5./(5+self._veget) / min(1.+int(self._water>0)*2+self._water/10,5.)
 
 	@property
 	def waterlevel(self):
@@ -131,7 +131,7 @@ class Tile(object):
 			self._water = max(max(0,-10-self.elevation),level)
 			#self.elevation += self._water
 			#self._walkbl = 5./(5+self._veget) / min(1.+self._water/10,5.)
-			self._walkbl = 5./(5+self._veget) / min(1.+int(self._water>0)+self._water/10,5.)
+			self._walkbl = 5./(5+self._veget) / min(1.+int(self._water>0)*2+self._water/10,5.)
 			y = (self.map.height-self.y)*20
 			#y += int(self.elevation+self._water) - 5*int(self._water>0)
 			y += int(self.elevation)

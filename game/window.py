@@ -1,6 +1,6 @@
 import pyglet
 from pyglet.gl import *
-from pyglet.window import mouse
+from pyglet.window import mouse, key
 from random import randrange as rnd
 
 import media
@@ -29,6 +29,8 @@ class Window(pyglet.window.Window):
 		glEnable(GL_TEXTURE_2D)
 		glShadeModel(GL_SMOOTH)
 
+		keys = key.KeyStateHandler()
+		push_handlers(keys)
 
 		#self.label = pyglet.text.Label('Gebrauchswert')
 
@@ -49,12 +51,10 @@ class Window(pyglet.window.Window):
 		j = jaja.create(world.surface.width/2,world.surface.height/2)
 		self.viewport.goto(map_pos(j))
 		self.viewport.zoom = 1.2
-		for i in range(5):
+		for i in range(25):
 			jaja.create(rnd(world.surface.width),rnd(world.surface.height))
 
-		#self.pathfinder = world.pathfinder.find_path(
-			#world.get().tile(5,25),
-			#world.get().tile(55,25))
+
 
 
 	def on_resize(self, width, height):
@@ -72,6 +72,11 @@ class Window(pyglet.window.Window):
 			self.viewport.move(dx,dy)
 			# updates itself
 
+
+	def on_key_press(symbol, modofiers):
+		for k,v in keys.items():
+			if v:
+				print k
 
 	def on_draw(self):
 		glClear(GL_COLOR_BUFFER_BIT)
