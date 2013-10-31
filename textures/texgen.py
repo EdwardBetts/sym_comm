@@ -109,7 +109,7 @@ def gettex(grass, water):
 	return img.crop((water*32,grass*32,water*32+32,grass*32+32))
 
 # init
-if not os.path.isfile('textures/dirt.png'):
+if not os.path.isfile('dirt.png'):
 	img = pil.new('RGB', (1024,1024), 'black')
 	pix = img.load()
 	print 'prepare dirt layer'
@@ -117,9 +117,9 @@ if not os.path.isfile('textures/dirt.png'):
 		for y in range(1024):
 			pix[x,y] = col(0)
 	img = img.resize((512,512), pil.ANTIALIAS)
-	img.save('textures/dirt.png')
+	img.save('dirt.png')
 else:
-	img = pil.open('textures/dirt.png', 'r')
+	img = pil.open('dirt.png', 'r')
 
 pix = img.load()
 
@@ -138,7 +138,7 @@ for j in range(16):
 print
 
 #img.show()
-img.save('textures/ground.png')
+img.save('ground.png')
 
 #bck=pil.new('RGB', (1024-32,1024-32), 'white')
 
