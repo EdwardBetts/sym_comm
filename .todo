@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<todo version="0.1.20">
+    <note priority="high" time="1381081986" done="1381164316">
+        double click handler
+        <comment>
+            kinda ugly but whatevs
+        </comment>
+    </note>
+    <note priority="veryhigh" time="1381081970">
+        keybindings
+    </note>
+    <note priority="veryhigh" time="1381082032">
+        implement tile map module graphics
+    </note>
+    <note priority="veryhigh" time="1381164299">
+        write tile map file IO for save and load
+    </note>
+    <note priority="high" time="1381164922">
+        proper position handling for mouse on screen coordinates by viewport
+    </note>
+</todo>
