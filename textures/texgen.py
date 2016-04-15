@@ -132,7 +132,7 @@ for i in range(16):
 # generate texture:
 print 'start generating'
 for j in range(16):
-	print '{:.2f}%'.format(100.*j/16)
+	print '{:.2%}'.format(j/16.0)
 	for i in range(16):
 		blitt(i,j)
 print
